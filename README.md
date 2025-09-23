@@ -27,54 +27,52 @@ Geschrieben in **PHP + MySQL**, optimiert für XAMPP/Apache auf Windows oder Lin
   - optional: `gd`, `curl`
 
 👉 Installation unter Ubuntu/Debian:
-```bash
+```
 sudo apt install php php-mysqli php-zip php-mbstring php-gd php-curl mariadb-client
-
+```
 📦 Installation
 
-Datenbank anlegen
-
+1. Datenbank anlegen
+```
 CREATE DATABASE 3d_druck CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+```
 
-
-Tabellen importieren
-
+2. Tabellen importieren
+```
 mysql -u USERNAME -p 3d_druck < sql/database-insert-sql.sql
+```
 
+3. Projektdateien kopieren
 
-Projektdateien kopieren
+ - In das Webserver-Root legen:
+	+ XAMPP: htdocs/filamentlager-iii/src/
+	+ Linux/Apache: /var/www/src/
 
-In das Webserver-Root legen:
+4. Datenbankzugang konfigurieren
 
-XAMPP: htdocs/filamentlager-iii/src/
-
-Linux/Apache: /var/www/src/
-
-Datenbankzugang konfigurieren
-
-src/db-example.php in db.php umbenennen und Zugangsdaten anpassen:
-
-$host = "localhost";
-$user = "deinuser";
-$pass = "deinpasswort";
-$dbname = "3d_druck"; // nicht ändern!
-
++ src/db-example.php in db.php umbenennen und Zugangsdaten anpassen:
+```
+	$host = "localhost";
+	$user = "deinuser";
+	$pass = "deinpasswort";
+	$dbname = "3d_druck"; // nicht ändern!
+```
 👣 Erste Schritte
 
-Projekt im Browser öffnen:
+1. Projekt im Browser öffnen:
 
-XAMPP: http://localhost/filamentlager-iii/src/
+	+ XAMPP: http://localhost/filamentlager-iii/src/
 
-Server: http://IP-ADRESSE/
+	+ Server: http://IP-ADRESSE/
 
-Mit Standard-Login anmelden:
+2. Mit Standard-Login anmelden:
+```
+	Benutzername: admin
+	Passwort: admin
+```
+3. Eigenen Benutzer anlegen → alten Admin auf readonly setzen.
 
-Benutzername: admin
-Passwort: admin
-
-Eigenen Benutzer anlegen → alten Admin auf readonly setzen.
-
-Firmendaten unter Stammdaten → Firmendaten pflegen (benötigt für Rechnungen).
+4. Firmendaten unter Stammdaten → Firmendaten pflegen (benötigt für Rechnungen).
 
 📸 Screenshots
 <p align="center">
@@ -95,7 +93,7 @@ Firmendaten unter Stammdaten → Firmendaten pflegen (benötigt für Rechnungen)
 <p align="center">
   <img src="docs/screenshots/3d-druck-kunden-anlegen.png" alt="Kunden anlegen" width="300">
 </p>
-
+```
 📂 Projektstruktur
 filamentlager-iii/
 ├─ docs/
@@ -114,22 +112,22 @@ filamentlager-iii/
 ├─ .gitignore
 ├─ LICENSE
 └─ README.md
-
+```
 📋 Menüpunkte
 
-Dashboard → Überblick über Lager & Aufträge
+* Dashboard → Überblick über Lager & Aufträge
 
-Aufträge & Rechnungen → Aufträge erstellen, Rechnungen generieren
+* Aufträge & Rechnungen → Aufträge erstellen, Rechnungen generieren
 
-Vorlagen → Projekte als Vorlagen speichern
+* Vorlagen → Projekte als Vorlagen speichern
 
-Lager → Spulen, Wareneingänge, Warenbewegungen
+* Lager → Spulen, Wareneingänge, Warenbewegungen
 
-Materialstammdaten → Filamente, Materialarten, Hersteller
+* Materialstammdaten → Filamente, Materialarten, Hersteller
 
-Stammdaten → Kunden, Drucker, Betriebskosten, Firmendaten, Benutzer & Rechte
+* Stammdaten → Kunden, Drucker, Betriebskosten, Firmendaten, Benutzer & Rechte
 
-Backup erstellen → Projekt & Datenbank sichern (ZIP-Datei)
+* Backup erstellen → Projekt & Datenbank sichern (ZIP-Datei)
 
 ⚠️ Hinweis
 
