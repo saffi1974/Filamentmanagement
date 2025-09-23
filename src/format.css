@@ -1,0 +1,549 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Layout */
+body {
+    display: flex;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+    background-color: #f4f6f8;
+	margin=0;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 250px;
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 30px 0; 
+    display: flex;
+    flex-direction: column;
+	flex-shrink: 0;
+    transition: width 0.3s ease;
+}
+
+/* Eingeklappten Zustand */
+.sidebar.collapsed {
+    width: 100px; /* etwas breiter für Icons */
+    overflow: visible; /* NICHT hidden, damit Inhalte sichtbar bleiben */
+}
+
+/* Inhalt */
+.sidebar .content {
+    flex-grow: 1;
+}
+
+/* Logo */
+.logo {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    padding-left: 20px; 
+    text-align: left;
+}
+.sidebar-logo {
+    max-width: 120px;
+    height: auto;
+    display: block;
+}
+.sidebar.collapsed .logo img {
+    width: 50px;
+    height: auto;
+    margin: 0 auto;
+}
+
+/* Icons sichtbar lassen, Text ausblenden im eingeklappten Zustand */
+.sidebar.collapsed .nav a span,
+.sidebar.collapsed .submenu li a span,
+.sidebar.collapsed .user-info li a span {
+    display: none;
+}
+
+/* Navigation */
+.nav ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.nav li {
+    margin-bottom: 15px;
+}
+
+.nav a {
+    color: #ecf0f1;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px 8px 30px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.nav a i {
+    margin-right: 10px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.nav a:hover {
+    background-color: #34495e;
+}
+
+/* Eingeklappt: Icons zentrieren */
+.sidebar.collapsed .nav a,
+.sidebar.collapsed .user-info li a {
+    justify-content: center;
+    padding-left: 0;
+}
+
+/* Toggle-Button */
+.toggle-btn {
+    background-color: #34495e;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 8px 12px;
+    margin: 10px auto 20px auto;
+    width: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+.toggle-btn i {
+    margin-right: 8px;
+}
+
+.sidebar.collapsed .toggle-btn span {
+    display: none;
+}
+
+.toggle-btn:hover {
+    background-color: #3b5998;
+}
+
+/* Submenu */
+.submenu {
+    list-style: none;
+    padding-left: 15px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.submenu li {
+    margin: 5px 0;
+    margin-left: 20px;
+}
+
+.has-submenu > a {
+    cursor: pointer;
+}
+
+.has-submenu.open .submenu {
+    max-height: none; 
+}
+
+/* Hauptinhalt */
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+	min-width: 0;
+	overflow-x: auto;
+}
+
+/* Header */
+.header h1 {
+    font-size: 2em;
+}
+
+/* Karten */
+.cards {
+    display: flex; /* legt die Elemente nebeneinander */
+    gap: 20px; /* Abstände zwischen den Cards */
+    flex-wrap: wrap; /*wenn nicht genug Platz ist, umbrechen in die nächste Zeile */
+}
+
+.card {
+    background-color: #fff; 
+    padding: 30px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    flex-basis: calc(25% - 20px);
+}
+
+.card-diagramm {
+    background-color: #fff; 
+    padding: 30px; 
+    border-radius: 8px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    flex-basis: calc(50% - 20px);
+}
+
+.card h3 {
+    margin-bottom: 30px;
+    color: #34495e;
+	text-align: center;
+}
+.card p {
+	margin-bottom: 35px;	/* Abstand unterhalb des Textes/Zahl */
+}
+.cards .card p.big-number {
+	margin-bottom: 10px;
+}
+.card .card-actions {
+    display: flex;
+    gap: 10px;             /* Abstand zwischen den Buttons */
+    margin-top: 10px;      /* Abstand oberhalb der Buttons */
+}
+
+/* Card Header */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.card-header h2 {
+    margin: 0;
+    color: #2c3e50;
+}
+
+/* Formular Sektion */
+.form-section {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  max-width: 600px;
+  margin-top: 20px;
+}
+
+/* Formular-Titel */
+.form-section h2 {
+  margin-bottom: 20px;
+  color: #34495e;
+}
+
+/* Formular-Gruppen */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+  background-color: #f9f9f9;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #3b5998;
+  outline: none;
+}
+
+/* Submit Button */
+.btn-submit {
+  background-color: #34495e;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.3s ease;
+}
+
+.btn-submit:hover {
+  background-color: #3b5998;
+}
+
+/* Login-Formular */
+.form-card {
+  flex-basis: 100%;
+  max-width: 400px;
+  margin: 40px auto;
+  text-align: left;
+}
+
+.form-card h3 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+
+/* Logout-Link */
+.logout-link {
+  color: #34495e;
+  font-weight: bold;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.3s, border-color 0.3s;
+}
+
+.logout-link:hover {
+  color: #3b5998;
+  border-color: #3b5998;
+}
+
+/* Primary Button */
+.btn-primary {
+    background-color: #34495e;
+    color: #fff;
+    padding: 8px 14px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1em;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #3b5998;
+}
+
+/* Tabelle im Card-Design */
+.styled-table {
+    width: 100%;
+	border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 10px 15px;
+}
+
+.styled-table thead {
+    background-color: #2c3e50;
+    color: #fff;
+}
+
+.styled-table tbody tr:nth-child(even) {
+    background-color: #f4f6f8;
+}
+
+.styled-table tbody tr:hover {
+    background-color: #e8ecef;
+}
+
+.styled-table th.left,
+.styled-table td.left {
+  text-align: left;
+}
+
+.styled-table th.center,
+.styled-table td.center {
+  text-align: center;
+}
+
+.styled-table th.right,
+.styled-table td.right {
+  text-align: right;
+}
+
+/* Aktionen-Spalte immer rechts */
+.styled-table th.actions,
+.styled-table td.actions {
+    width: 80px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* Allgemein für Buttons in der Aktionen-Spalte */
+.btn-action {
+    display: inline-block;
+    padding: 6px 8px;
+    border-radius: 6px;
+    margin: 0 2px;
+    color: #fff;
+    text-decoration: none;
+    transition: background 0.2s ease;
+}
+.btn-action i {
+    color: #fff;   /* weißes Icon */
+}
+/* Editieren (Stift) */
+.btn-action.edit {
+    background: #3498db; /* Blau */
+}
+.btn-action.edit:hover {
+    background: #2980b9;
+}
+
+/* Löschen (Papierkorb) */
+.btn-action.delete {
+    background: #e74c3c; /* Rot */
+}
+.btn-action.delete:hover {
+    background: #c0392b;
+}
+
+/* Buchen (Box) */
+.btn-action.book {
+    background: #27ae60; /* Grün */
+    color: #fff;         /* Text und Icon weiß */
+}
+.btn-action.book:hover {
+    background: #1e8449;
+    color: #fff;
+}
+/* view (eye) */
+.btn-action.view {
+    background: #ffdc00; /* Gelb */
+    color: #fff;         /* Text und Icon weiß */
+}
+.btn-action.view:hover {
+    background: #ffcd00;
+    color: #fff;
+}
+
+
+
+/* Pagination */
+.card .pagination {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.card .pagination a,
+.card .pagination strong {
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9em;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.card .pagination a {
+    background-color: #34495e;
+    color: #fff;
+}
+
+.card .pagination a:hover {
+    background-color: #3b5998;
+}
+
+.card .pagination strong {
+    background-color: #27ae60;
+    color: #fff;
+}
+.toast {
+	position:fixed;
+	top:16px; right:16px;
+	z-index:2000;
+	background:#27ae60;
+	color:#fff;
+	padding:10px 14px;
+	border-radius:8px;
+	box-shadow:0 4px 12px rgba(0,0,0,.15);
+	pointer-events:none; /* ← Klicks gehen durch */
+	font-size: 0.95rem;
+}
+.toast.error {
+	background:#c0392b;
+}
+/* Wrapper für jede Filament-Zeile */
+.filament-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Dropdown & Input-Felder angleichen */
+.filament-row select,
+.filament-row input[type="number"] {
+    flex: 1;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* Entfernen-Button im Filament-Formular */
+.filament-row .btn-action.delete {
+    background: #e74c3c; /* Rot */
+    color: #fff;
+    border-radius: 6px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.filament-row .btn-action.delete:hover {
+    background: #c0392b;
+    transform: scale(1.05);
+    cursor: pointer;
+}
+.info-box {
+    background: #f1f1f1;
+    border-left: 4px solid #3498db;
+    padding: 10px 15px;
+    margin: 15px 0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+.info-box i {
+    color: #3498db;
+    font-size: 18px;
+}
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+}
+.status-badge a {
+    color: #fff;
+}
+.status-offen {
+    background: #7f8c8d; /* grau */
+}
+
+.status-in_bearbeitung {
+    background: #e67e22; /* orange */
+}
+
+.status-fertig {
+    background: #27ae60; /* grün */
+}
+.menu-separator { 
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 20px 0;
+}
+#umsatzChart, #auftraegeChart {
+  width: 100% !important;
+  height: 400px !important;
+  max-width: 100%; /* verhindert Überlaufen */
+}
+

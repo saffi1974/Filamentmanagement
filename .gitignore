@@ -1,0 +1,46 @@
+# ⚠️ Verhindere das Hochladen sensibler Daten
+
+# Datenbank-Zugangsdaten
+/src/db.php
+
+# MySQL & phpMyAdmin (lokale Datenbanken, nicht ins Repo)
+mysql/
+phpmyadmin/
+
+# Backups & Dumps
+/src/backups/
+*.sql
+*.zip
+*.tar.gz
+
+# Images – nur Standardformate erlauben
+/src/images/*
+!/src/images/*.jpg
+!/src/images/*.jpeg
+!/src/images/*.png
+!/src/images/.gitkeep
+
+# SQL-Skripte – nur bestimmte Dateien erlauben
+/sql/*
+!/sql/*.sql
+
+# Sessions, Logs & temporäre Dateien
+*.log
+*.tmp
+*.bak
+*.swp
+*.sess
+
+# Dependencies (Composer/Node)
+vendor/
+node_modules/
+
+# IDE/Editor Settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# System files
+.DS_Store
+Thumbs.db
