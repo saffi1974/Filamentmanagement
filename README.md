@@ -86,7 +86,7 @@ mysql -u USERNAME -p 3d_druck < sql/database-insert-sql.sql
 | --------------------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------- |
 | ![Hersteller](docs/screenshots/3d-druck-hersteller-ansicht.png) | ![Betriebskosten](docs/screenshots/3d-druck-betriebskosten-ansicht.png) | ![Drucker](docs/screenshots/3d-druck-drucker-anlegen.png) |
 
-
+```
 📂 Projektstruktur
 filamentlager-iii/
 ├─ docs/
@@ -105,6 +105,7 @@ filamentlager-iii/
 ├─ .gitignore
 ├─ LICENSE
 └─ README.md
+```
 
 📋 Menüpunkte
 
