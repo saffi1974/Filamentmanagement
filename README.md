@@ -66,34 +66,27 @@ mysql -u USERNAME -p 3d_druck < sql/database-insert-sql.sql
 	+ Server: http://IP-ADRESSE/
 
 2. Mit Standard-Login anmelden:
-```
+
 	Benutzername: admin
 	Passwort: admin
-```
+
 3. Eigenen Benutzer anlegen → alten Admin auf readonly setzen.
 
 4. Firmendaten unter Stammdaten → Firmendaten pflegen (benötigt für Rechnungen).
 
-📸 Screenshots
-<p align="center">
-  <img src="docs/screenshots/3d-druck-dashboard.png" alt="Dashboard" width="300">
-  <img src="docs/screenshots/3d-druck-filament-ansicht.png" alt="Filamente Ansicht" width="300">
-  <img src="docs/screenshots/3d-druck-filament-anlegen.png" alt="Filamente anlegen" width="300">
-</p>
-<p align="center">
-  <img src="docs/screenshots/3d-druck-projekt-anlegen.png" alt="Projekte anlegen" width="300">
-  <img src="docs/screenshots/3d-druck-auftrag-anlegen.png" alt="Auftrag anlegen" width="300">
-  <img src="docs/screenshots/3d-druck-hersteller-ansicht.png" alt="Hersteller Ansicht" width="300">
-</p>
-<p align="center">
-  <img src="docs/screenshots/3d-druck-betriebskosten-ansicht.png" alt="Betriebskosten Ansicht" width="300">
-  <img src="docs/screenshots/3d-druck-betriebskosten-anlegeng.png" alt="Betriebskosten anlegen" width="300">
-  <img src="docs/screenshots/3d-druck-drucker-anlegen.png" alt="Drucker anlegen" width="300">
-</p>
-<p align="center">
-  <img src="docs/screenshots/3d-druck-kunden-anlegen.png" alt="Kunden anlegen" width="300">
-</p>
-```
+## 📸 Screenshots
+
+| Dashboard                                             | Filamente Übersicht                                                    | Auftrag anlegen                                                   |
+| ----------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| ![Dashboard](docs/screenshots/3d-druck-dashboard.png) | ![Filamente Übersicht](docs/screenshots/3d-druck-filament-ansicht.png) | ![Auftrag anlegen](docs/screenshots/3d-druck-auftrag-anlegen.png) |
+| Filament anlegen                                                    | Projekt anlegen                                                   | Kundenverwaltung                                                  |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| ![Filament anlegen](docs/screenshots/3d-druck-filament-anlegen.png) | ![Projekt anlegen](docs/screenshots/3d-druck-projekt-anlegen.png) | ![Kundenverwaltung](docs/screenshots/3d-druck-kunden-anlegen.png) |
+| Hersteller                                                      | Betriebskosten                                                          | Drucker                                                   |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------- |
+| ![Hersteller](docs/screenshots/3d-druck-hersteller-ansicht.png) | ![Betriebskosten](docs/screenshots/3d-druck-betriebskosten-ansicht.png) | ![Drucker](docs/screenshots/3d-druck-drucker-anlegen.png) |
+
+
 📂 Projektstruktur
 filamentlager-iii/
 ├─ docs/
@@ -112,7 +105,7 @@ filamentlager-iii/
 ├─ .gitignore
 ├─ LICENSE
 └─ README.md
-```
+
 📋 Menüpunkte
 
 * Dashboard → Überblick über Lager & Aufträge
