@@ -34,7 +34,7 @@ $res = $conn->query($sql);
 <section class="card">
     <div class="card-header">
         <h2>Spulenlager</h2>
-        <a href="index.php?site=spulen_anlegen" class="btn-primary">+ Wareneingang buchen</a>
+        <div class="right"><a href="index.php?site=spulen_anlegen" class="btn-primary">+ Spule anlegen</a> <a href="index.php?site=buchungen" class="btn-primary">+ Wareneingang buchen</a></div>
     </div>
 
     <table class="styled-table">

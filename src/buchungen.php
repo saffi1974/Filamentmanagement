@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <section class="card">
     <div class="card-header">
         <h2>Neue Spulen einbuchen</h2>
-        <a href="index.php?site=spulenlager" class="btn-primary">← Zum Lager</a>
+        <a href="index.php?site=spulen" class="btn-primary">← Zum Lager</a>
     </div>
 
     <form method="post" class="form">
