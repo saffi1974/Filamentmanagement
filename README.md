@@ -140,3 +140,14 @@ Fehler oder Verbesserungsvorschläge bitte als GitHub Issues
 
 Dieses Projekt steht unter der MIT License
 .
+
+---
+
+## 💖 Unterstützen
+
+Dieses Projekt ist ein privates Hobbyprojekt und wird kostenlos zur Verfügung gestellt.  
+Wenn es dir gefällt oder dir bei deiner Arbeit hilft, freue ich mich über eine kleine freiwillige Unterstützung:  
+
+[![Donate via PayPal](https://img.shields.io/badge/Donate-PayPal-blue)](https://paypal.me/MikeSafranek/3)
+
+Jede Spende ist natürlich freiwillig, aber sie hilft, die Entwicklung weiterzuführen und neue Funktionen einzubauen. 🙌
