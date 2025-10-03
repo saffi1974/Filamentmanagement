@@ -35,6 +35,7 @@ $res = $conn->query($sql);
 <section class="card">
     <div class="card-header">
         <h2>Rechnungen</h2>
+		<div><a href="index.php?site=auftraege" class="btn-primary">← zu den Aufträgen</a></div>
     </div>
 
     <?php if (isset($_SESSION['success'])): ?>

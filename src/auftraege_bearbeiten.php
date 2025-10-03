@@ -1,4 +1,8 @@
 <?php
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 require_once "form_token.php";
 require_once "auth.php";
 require_role(['superuser','admin']);
@@ -26,6 +30,12 @@ if (!$auftrag) {
 $kunden = $conn->query("SELECT id, firma, ansprechpartner FROM kunden ORDER BY firma, ansprechpartner")
                ->fetch_all(MYSQLI_ASSOC);
 
+// Druckzeit pro Stück vorberechnen
+$druckzeit_pro_stueck = 0;
+if ($auftrag['anzahl'] > 0) {
+    $druckzeit_pro_stueck = (int)($auftrag['druckzeit_seconds'] / $auftrag['anzahl']);
+}
+
 // -----------------------------
 // Auftrag updaten
 // -----------------------------
@@ -42,9 +52,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_auftrag'])) {
     $anzahl   = (int)$_POST['anzahl'];
     $status   = $_POST['status'];
 
-    $sql = "UPDATE auftraege SET kunde_id=?, name=?, datum=?, anzahl=?, status=? WHERE id=?";
+    // Druckzeit neu berechnen
+    $tage     = (int)($_POST['days'] ?? 0);
+    $stunden  = (int)($_POST['hours'] ?? 0);
+    $minuten  = (int)($_POST['minutes'] ?? 0);
+    $sekunden = (int)($_POST['seconds'] ?? 0);
+
+    $druckzeit_pro_stueck = $tage*86400 + $stunden*3600 + $minuten*60 + $sekunden;
+    $gesamt_druckzeit = $druckzeit_pro_stueck * $anzahl;
+
+    $sql = "UPDATE auftraege 
+            SET kunde_id=?, name=?, datum=?, anzahl=?, status=?, druckzeit_seconds=? 
+            WHERE id=?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("issisi", $kunde_id, $name, $datum, $anzahl, $status, $auftrag_id);
+    $stmt->bind_param("issisii", $kunde_id, $name, $datum, $anzahl, $status, $gesamt_druckzeit, $auftrag_id);
     $stmt->execute();
 
     $_SESSION['success'] = '<div class="info-box"><i class="fa-solid fa-circle-check"></i> Auftrag aktualisiert.</div>';
@@ -80,7 +101,7 @@ $auftrag_pos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             <select name="kunde_id" id="kunde_id" required>
                 <?php foreach ($kunden as $k): ?>
                     <option value="<?= $k['id'] ?>" <?= ($auftrag['kunde_id'] == $k['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($k['firma'] ?: $k['ansprechpartner']) ?>
+                        <?= htmlspecialchars($k['firma'] ?: ($k['ansprechpartner'] ?: "Unbekannt")) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -99,6 +120,16 @@ $auftrag_pos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         <div class="form-group">
             <label for="anzahl">Anzahl</label>
             <input type="number" id="anzahl" name="anzahl" value="<?= htmlspecialchars($auftrag['anzahl']) ?>" min="1" required>
+        </div>
+
+        <div class="form-group">
+            <label>Druckzeit (1 Stück)</label>
+            <div style="display:flex; gap:5px; align-items:center;">
+                <input type="number" name="days"    min="0" value="<?= floor($druckzeit_pro_stueck / 86400) ?>" style="width:60px;"> T
+                <input type="number" name="hours"   min="0" max="23" value="<?= floor(($druckzeit_pro_stueck % 86400) / 3600) ?>" style="width:60px;"> h
+                <input type="number" name="minutes" min="0" max="59" value="<?= floor(($druckzeit_pro_stueck % 3600) / 60) ?>" style="width:60px;"> m
+                <input type="number" name="seconds" min="0" max="59" value="<?= $druckzeit_pro_stueck % 60 ?>" style="width:60px;"> s
+            </div>
         </div>
 
         <div class="form-group">

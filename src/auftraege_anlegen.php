@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Projekte laden
-$projekte = $conn->query("SELECT id, projektname FROM projekte ORDER BY projektname")
+$projekte = $conn->query("SELECT id, projektname, druckzeit_seconds FROM projekte ORDER BY projektname")
                  ->fetch_all(MYSQLI_ASSOC);
 
 // Kunden laden
@@ -20,6 +20,35 @@ $kunde_id   = $_POST['kunde_id'] ?? null;
 $name       = $_POST['name'] ?? '';
 $datum      = $_POST['datum'] ?? date('Y-m-d');
 $anzahl     = $_POST['anzahl'] ?? 1;
+
+$projekt = null;
+$projekt_filamente = [];
+
+// -----------------------------
+// Projekt-Daten laden (wenn Projekt gewählt)
+// -----------------------------
+if (!empty($projekt_id)) {
+    $sql = "SELECT id, projektname, druckzeit_seconds 
+            FROM projekte 
+            WHERE id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $projekt_id);
+    $stmt->execute();
+    $projekt = $stmt->get_result()->fetch_assoc();
+
+    // Filament-Positionen des Projekts laden
+    $sql = "SELECT pf.filament_id, pf.menge_geplant, 
+                   CONCAT(h.hr_name,' | ', f.name_des_filaments,' | ', m.name) AS filament_name
+            FROM projekt_filamente pf
+            JOIN filamente f ON pf.filament_id = f.id
+            JOIN hersteller h ON f.hersteller_id = h.id
+            JOIN materialien m ON f.material = m.id
+            WHERE pf.projekt_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $projekt_id);
+    $stmt->execute();
+    $projekt_filamente = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
 
 // -----------------------------
 // Auftrag speichern
@@ -37,29 +66,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_auftrag'])) {
     $datum      = $_POST['datum'];
     $anzahl     = (int)$_POST['anzahl'];
 
+    // Druckzeit (nur eine pro Auftrag)
+    $tage     = (int)($_POST['days'] ?? 0);
+    $stunden  = (int)($_POST['hours'] ?? 0);
+    $minuten  = (int)($_POST['minutes'] ?? 0);
+    $sekunden = (int)($_POST['seconds'] ?? 0);
+
+    $druckzeit_pro_stueck = $tage*86400 + $stunden*3600 + $minuten*60 + $sekunden;
+    $gesamt_druckzeit = $druckzeit_pro_stueck * $anzahl;
+
     // Auftrag speichern
     $sql = "INSERT INTO auftraege (projekt_id, name, kunde_id, datum, anzahl, druckzeit_seconds, status) 
-            VALUES (?, ?, ?, ?, ?, 0, 'offen')";
+            VALUES (?, ?, ?, ?, ?, ?, 'offen')";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("isisi", $projekt_id, $name, $kunde_id, $datum, $anzahl);
+    $stmt->bind_param("isisii", $projekt_id, $name, $kunde_id, $datum, $anzahl, $gesamt_druckzeit);
     $stmt->execute();
     $auftrag_id = $stmt->insert_id;
 
-    // Positionen speichern + Druckzeit summieren
-    $gesamt_druckzeit = 0;
+    // Filament-Positionen speichern
     if (!empty($_POST['position'])) {
         foreach ($_POST['position'] as $pos) {
             $filament_id   = (int)$pos['filament_id'];
             $menge_geplant = (float)$pos['menge_geplant'];
-
-            // Druckzeit berechnen
-            $tage     = (int)($pos['days'] ?? 0);
-            $stunden  = (int)($pos['hours'] ?? 0);
-            $minuten  = (int)($pos['minutes'] ?? 0);
-            $sekunden = (int)($pos['seconds'] ?? 0);
-
-            $druckzeit_seconds = $tage*86400 + $stunden*3600 + $minuten*60 + $sekunden;
-            $gesamt_druckzeit += $druckzeit_seconds * $anzahl;
 
             if ($filament_id > 0 && $menge_geplant > 0) {
                 $sql = "INSERT INTO auftrag_filamente (auftrag_id, filament_id, menge_geplant, menge_gebucht, status) 
@@ -71,33 +99,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_auftrag'])) {
         }
     }
 
-    // Update Gesamtdruckzeit
-    $sql = "UPDATE auftraege SET druckzeit_seconds = ? WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $gesamt_druckzeit, $auftrag_id);
-    $stmt->execute();
-
     $_SESSION['success'] = '<div class="info-box"><i class="fa-solid fa-circle-check"></i> Auftrag erfolgreich angelegt.</div>';
     header("Location: index.php?site=auftraege");
     exit;
-}
-
-// -----------------------------
-// Projekt-Positionen laden, wenn Projekt gewählt
-// -----------------------------
-$projekt_filamente = [];
-if (!empty($projekt_id)) {
-    $sql = "SELECT pf.filament_id, pf.menge_geplant, 
-                   CONCAT(h.hr_name,' | ', f.name_des_filaments,' | ', m.name) AS filament_name
-            FROM projekt_filamente pf
-            JOIN filamente f ON pf.filament_id = f.id
-            JOIN hersteller h ON f.hersteller_id = h.id
-            JOIN materialien m ON f.material = m.id
-            WHERE pf.projekt_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $projekt_id);
-    $stmt->execute();
-    $projekt_filamente = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
 ?>
 
@@ -126,7 +130,7 @@ if (!empty($projekt_id)) {
                 <option value="">-- Kunde wählen --</option>
                 <?php foreach ($kunden as $k): ?>
                     <option value="<?= $k['id'] ?>" <?= ($kunde_id == $k['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($k['firma'] ?: $k['ansprechpartner']) ?>
+                        <?= htmlspecialchars($k['firma'] ?: ($k['ansprechpartner'] ?: "Unbekannt")) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -147,14 +151,25 @@ if (!empty($projekt_id)) {
             <input type="number" id="anzahl" name="anzahl" value="<?= htmlspecialchars($anzahl) ?>" min="1" required>
         </div>
 
+        <?php if (!empty($projekt)): ?>
+            <div class="form-group">
+                <label>Druckzeit (1 Stück)</label>
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <input type="number" name="days"    min="0" value="<?= floor(($projekt['druckzeit_seconds'] ?? 0) / 86400) ?>" style="width:60px;"> T
+                    <input type="number" name="hours"   min="0" max="23" value="<?= floor((($projekt['druckzeit_seconds'] ?? 0) % 86400) / 3600) ?>" style="width:60px;"> h
+                    <input type="number" name="minutes" min="0" max="59" value="<?= floor((($projekt['druckzeit_seconds'] ?? 0) % 3600) / 60) ?>" style="width:60px;"> m
+                    <input type="number" name="seconds" min="0" max="59" value="<?= ($projekt['druckzeit_seconds'] ?? 0) % 60 ?>" style="width:60px;"> s
+                </div>
+            </div>
+        <?php endif; ?>
+
         <?php if (!empty($projekt_filamente)): ?>
-            <h3>Positionen bearbeiten</h3>
+            <h3>Filament-Positionen</h3>
             <table class="styled-table">
                 <thead>
                     <tr>
                         <th>Filament</th>
                         <th>Menge geplant (g)</th>
-                        <th>Druckzeit (1 Stück)</th>
                         <th>Aktion</th>
                     </tr>
                 </thead>
@@ -169,14 +184,6 @@ if (!empty($projekt_id)) {
                                 <input type="number" step="0.01" name="position[<?= $i ?>][menge_geplant]" value="<?= $pf['menge_geplant'] ?>" required>
                             </td>
                             <td>
-                                <div style="display:flex; gap:5px; align-items:center;">
-                                    <input type="number" name="position[<?= $i ?>][days]" min="0" value="0" style="width:60px;"> T
-                                    <input type="number" name="position[<?= $i ?>][hours]" min="0" max="23" value="0" style="width:60px;"> h
-                                    <input type="number" name="position[<?= $i ?>][minutes]" min="0" max="59" value="0" style="width:60px;"> m
-                                    <input type="number" name="position[<?= $i ?>][seconds]" min="0" max="59" value="0" style="width:60px;"> s
-                                </div>
-                            </td>
-                            <td>
                                 <button type="button" onclick="this.closest('tr').remove()">❌ Entfernen</button>
                             </td>
                         </tr>
@@ -187,7 +194,7 @@ if (!empty($projekt_id)) {
 
         <input type="hidden" name="form_token" value="<?= htmlspecialchars(generate_form_token()) ?>">
 
-        <?php if (!empty($projekt_filamente)): ?>
+        <?php if (!empty($projekt)): ?>
             <button type="submit" name="save_auftrag" class="btn-primary">💾 Auftrag speichern</button>
         <?php endif; ?>
     </form>

@@ -58,10 +58,32 @@ if ($row = $res->fetch_assoc()) {
     $strompreis = (float)$row['standard_betrag'];
 }
 
-// Maschinenkosten ermitteln
-$secs = $auftrag['druckzeit_seconds'] * $auftrag['anzahl'];
-$stunden = $secs / 3600;
-$maschinenkosten = $stunden;
+// Druckzeit gesamt (für alle Stücke) in Stunden
+$druckzeit_seconds_total = (int)($auftrag['druckzeit_seconds'] ?? 0);
+
+function format_dauer($seconds) {
+    $days = floor($seconds / 86400);
+    $seconds %= 86400;
+    $hours = floor($seconds / 3600);
+    $seconds %= 3600;
+    $minutes = floor($seconds / 60);
+    $seconds = $seconds % 60;
+
+    $parts = [];
+    if ($days > 0) $parts[] = $days . " T";
+    if ($hours > 0) $parts[] = $hours . " h";
+    if ($minutes > 0) $parts[] = $minutes . " min";
+    if ($seconds > 0) $parts[] = $seconds . " s";
+
+    // Wenn gar nichts (0 Sekunden)
+    if (empty($parts)) {
+        return "0 s";
+    }
+
+    return implode(" ", $parts);
+}
+
+
 
 // Weitere Betriebskosten außer Strompreis
 $res = $conn->query("SELECT * FROM betriebskosten WHERE kostenart != 'Strompreis' ORDER BY kostenart");
@@ -135,24 +157,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
     $res = $stmt->get_result()->fetch_assoc();
     $leistung_watt = (int)$res['stromverbrauch_watt'];
 
-    // Maschinenkosten als eigene Position speichern
-    if ($maschinenkosten > 0) {
-        $beschreibung = "Druckzeit (".number_format($stunden,2,",",".")." h × 5 €/h)";
-        $menge = $stunden;
-        $einheit = "h";
-
-        $sql = "INSERT INTO rechnungspositionen 
-                   (rechnung_id, typ, beschreibung, menge, einheit)
-                VALUES (?, 'druckzeit', ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("isds", $rechnung_id, $beschreibung, $menge, $einheit);
-        $stmt->execute();
-    }
+	if ($stunden > 0) {
+		$beschreibung = "Druckzeit: ".number_format($stunden,2,",",".")." Stunden";
+		$sql = "INSERT INTO rechnungspositionen 
+				   (rechnung_id, typ, beschreibung, menge, einheit, preis_pro_einheit, gesamt)
+				VALUES (?, 'info', ?, ?, ?, 0, 0)";
+		$stmt = $conn->prepare($sql);
+		$stmt->bind_param("isds", $rechnung_id, $beschreibung, $stunden, $einheit);
+		$stmt->execute();
+	}
 
     // Stromkosten berechnen
-    $druckzeit_seconds = (int)$auftrag['druckzeit_seconds'];
-    $stunden = $druckzeit_seconds / 3600;
-    $verbrauch_kwh = ($leistung_watt * $stunden) / 1000;
+	$druckzeit_seconds_total = (int)($auftrag['druckzeit_seconds'] ?? 0);
+	$stunden_gesamt = $druckzeit_seconds_total / 3600;
+	$verbrauch_kwh = ($leistung_watt * $stunden_gesamt) / 1000;
+
     $stromkosten = $verbrauch_kwh * $strompreis;
 
     // Stromkosten-Position speichern
@@ -185,11 +204,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
 
             $beschreibung = $row['kostenart'];
             $preis_pro_einheit = (float)$row['standard_betrag'];
-			if ($row['einheit'] === 'pauschal') {
-				$anzahl = 1;
-				$gesamt = $preis_pro_einheit;
-			} else {
-				$gesamt = $preis_pro_einheit * $anzahl;
+			switch ($row['einheit']) {
+				case 'pauschal':
+					$menge = 1;
+					$gesamt = $preis_pro_einheit * $anzahl; // Multiplikator erlaubt
+					break;
+
+				case 'pro_stunde': // pro Stunde Druckzeit
+					$menge = $stunden_gesamt; // gesamte Druckzeit in Stunden
+					$gesamt = $preis_pro_einheit * $menge * $anzahl;
+					break;
+
+				case 'pro_stueck': // pro gedrucktem Teil
+					$menge = (int)$auftrag['anzahl'];
+					$gesamt = $preis_pro_einheit * $menge * $anzahl;
+					break;
+
+				default: // sonstige Einheit, nur Multiplikator
+					$menge = $anzahl;
+					$gesamt = $preis_pro_einheit * $menge;
+					break;
 			}
             $gesamtbetrag += $gesamt;
 
@@ -253,9 +287,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
             <?php endforeach; ?>
 			<tr>
 				<td>Druckzeit</td>
-				
-				<td class="right"><?= htmlspecialchars($stunden ?? '-') ?> h</td>
-				
+				<td class="right"><?= htmlspecialchars(format_dauer($druckzeit_seconds_total)) ?></td>
 				<td></td>
 			</tr>
         </tbody>

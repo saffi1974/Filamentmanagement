@@ -37,6 +37,7 @@ $totalPages = ceil($totalEntries / $limit);
 // Bewegungen abfragen
 $sql = "
     SELECT lb.*, 
+		   u.Name AS user_name,
            CONCAT(h.hr_name, ' | ', f.name_des_filaments, ' | ', m.name) AS filament_name,
            p.projektname,
            a.name AS auftrag_name
@@ -46,6 +47,7 @@ $sql = "
     JOIN materialien m ON f.material = m.id
     LEFT JOIN projekte p ON lb.projekt_id = p.id
     LEFT JOIN auftraege a ON lb.auftrag_id = a.id
+	LEFT JOIN user u ON lb.user_id = u.id
     $whereSql
     ORDER BY lb.datum DESC
     LIMIT $start, $limit
@@ -92,11 +94,12 @@ $res = $conn->query($sql);
         <table class="styled-table">
             <thead>
                 <tr>
-                    <th style="width:15%;">Datum</th>
-                    <th style="width:15%;">Bewegung</th>
+                    <th style="width:12%;">Datum</th>
+                    <th style="width:13%;">Bewegung</th>
                     <th style="width:25%;">Filament</th>
-                    <th style="width:10%;">Menge (g)</th>
+                    <th style="width:7%;">Menge (g)</th>
                     <th style="width:15%;">Bezug</th>
+					<th style="width:7%;">Benutzer</th>
                     <th style="width:20%;">Kommentar</th>
                 </tr>
             </thead>
@@ -119,7 +122,7 @@ $res = $conn->query($sql);
                         <td class="<?= $row['menge'] < 0 ? 'right error' : 'right success' ?>">
                             <?= $row['menge'] ?>
                         </td>
-                        <td>
+                        <td class="center">
                             <?php if ($row['projekt_id']): ?>
                                 Projekt: <?= htmlspecialchars($row['projektname'] ?? 'Unbekannt') ?>
                             <?php elseif ($row['auftrag_id']): ?>
@@ -128,6 +131,7 @@ $res = $conn->query($sql);
                                 -
                             <?php endif; ?>
                         </td>
+						<td class="center"><?= htmlspecialchars($row['user_name'] ?? '') ?></td>
                         <td><?= htmlspecialchars($row['kommentar'] ?? '') ?></td>
                     </tr>
                 <?php endwhile; ?>

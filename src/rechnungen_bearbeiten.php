@@ -67,7 +67,7 @@ if (isset($_GET['delete'])) {
     $stmt->execute();
 
     $_SESSION['success'] = '<div class="info-box"><i class="fa-solid fa-trash"></i> Position gelöscht.</div>';
-    header("Location: index.php?site=rechnungen_bearbeiten&id=" . $rechnung_id);
+    header("Location: index.php?site=rechnungen");
     exit;
 }
 
@@ -143,7 +143,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
     $stmt->execute();
 
     $_SESSION['success'] = '<div class="info-box"><i class="fa-solid fa-circle-check"></i> Rechnung aktualisiert.</div>';
-    header("Location: index.php?site=rechnungen_bearbeiten&id=" . $rechnung_id);
+    header("Location: index.php?site=rechnungen");
     exit;
 }
 ?>

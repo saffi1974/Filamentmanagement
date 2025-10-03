@@ -67,31 +67,6 @@ while ($row = $res->fetch_assoc()) {
   <div class="cards">
 
     <div class="card">
-		<h3><i class="fa-solid fa-print"></i> Druckaufträge</h3>
-		<table class="styled-table">
-			<tbody>
-				<tr>
-					<td style="width:70%;">Aufträge gesamt:</td><td class="right"><?= $auftraegeCount ?></td>
-				</tr>
-				<tr>
-					<td>Offene Aufträge:</td><td class="right"><?= $offene_auftraege ?></td>
-				</tr>
-				<tr>
-					<td>Fertige Aufträge:</td><td class="right"><?= $fertige_auftraege ?></td>			
-				</tr>
-			</tbody>
-			<tfoot>
-				<tr>
-					<td colspan="2" class="card-actions">
-						<a href="index.php?site=auftraege" class="btn-action edit"><i class="fa-solid fa-list"></i></a>
-						<a href="index.php?site=auftraege_anlegen" class="btn-action delete"><i class="fa-solid fa-plus"></i></a>
-					</td>
-				</tr>
-			</tfoot>
-		</table>
-	</div>
-
-    <div class="card">
 		<h3><i class="fa-solid fa-record-vinyl"></i> Spulenlager</h3>
 		<table class="styled-table">
 			<tbody>
@@ -140,7 +115,32 @@ while ($row = $res->fetch_assoc()) {
 			</tfoot>
 		</table>
 	</div>
-	
+
+    <div class="card">
+		<h3><i class="fa-solid fa-print"></i> Druckaufträge</h3>
+		<table class="styled-table">
+			<tbody>
+				<tr>
+					<td style="width:70%;">Aufträge gesamt:</td><td class="right"><?= $auftraegeCount ?></td>
+				</tr>
+				<tr>
+					<td>Offene Aufträge:</td><td class="right"><?= $offene_auftraege ?></td>
+				</tr>
+				<tr>
+					<td>Fertige Aufträge:</td><td class="right"><?= $fertige_auftraege ?></td>			
+				</tr>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="2" class="card-actions">
+						<a href="index.php?site=auftraege" class="btn-action edit"><i class="fa-solid fa-list"></i></a>
+						<a href="index.php?site=auftraege_anlegen" class="btn-action delete"><i class="fa-solid fa-plus"></i></a>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
+
 	<div class="card">
 		<h3><i class="fa-solid fa-sack-dollar"></i> Business</h3>
 		<table class="styled-table">
