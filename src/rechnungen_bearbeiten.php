@@ -231,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
                     <td><?= htmlspecialchars($k['beschreibung']) ?></td>
                     <td class="right"><?= number_format($k['standard_betrag'], 2, ',', '.') ?></td>
                     <td><?= htmlspecialchars($k['einheit']) ?></td>
-                    <td><input type="number" name="neue_kosten[<?= $k['id'] ?>][anzahl]" value="1" min="1" step="0.1"></td>
+                    <td><input type="number" name="neue_kosten[<?= $k['id'] ?>][anzahl]" value="1" min="1" step="1"></td>
                     <td><input type="checkbox" name="neue_kosten[<?= $k['id'] ?>][selected]" value="1"></td>
                 </tr>
                 <?php endforeach; ?>

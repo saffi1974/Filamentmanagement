@@ -11,7 +11,7 @@ if (!$auftrag_id) {
 }
 
 // Sicherheitsabfrage: existiert der Auftrag?
-$sql = "SELECT id, name FROM auftraege WHERE id = ?";
+$sql = "SELECT id, name, status FROM auftraege WHERE id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $auftrag_id);
 $stmt->execute();
@@ -19,11 +19,17 @@ $res = $stmt->get_result();
 $auftrag = $res->fetch_assoc();
 
 if (!$auftrag) {
-    $_SESSION['error'] = "Auftrag nicht gefunden.";
+    $_SESSION['error'] = '<div class="info-box"><i class="fa-solid fa-circle-exclamation"></i><span>Auftrag wurde nicht gefunden.</span></div>';
     header("Location: index.php?site=auftraege");
     exit;
 }
 
+//Nur Löschen, wenn der Auftrag NICHT fertig ist
+if ($auftrag['status'] === 'fertig') {
+	$_SESSION['error'] = '<div class="info-box"><i class="fa-solid fa-circle-exclamation"></i><span>Fertige Aufträge können nicht gelöscht werden!</span></div>';
+    header("Location: index.php?site=auftraege");
+    exit;
+}
 // Wenn bestätigt: löschen
 if (isset($_POST['bestaetigen'])) {
     $sql = "DELETE FROM auftraege WHERE id = ?";

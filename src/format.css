@@ -378,6 +378,7 @@ body {
     color: #fff;
     text-decoration: none;
     transition: background 0.2s ease;
+
 }
 .btn-action i {
     color: #fff;   /* weißes Icon */
@@ -547,3 +548,29 @@ body {
   max-width: 100%; /* verhindert Überlaufen */
 }
 
+.zeit-eingabe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.zeit-eingabe label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.9rem;
+  text-align: center;
+}
+.zeit-eingabe span {
+  margin-bottom: 4px;
+  font-weight: 700;
+  color: #333;
+}
+.zeit-eingabe input {
+  width: 80px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  text-align: right;
+}

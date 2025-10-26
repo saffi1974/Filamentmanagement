@@ -71,7 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         <a href="index.php?site=projekte" class="btn-primary">← Zur Projektliste</a>
     </div>
 
-    <form method="post" class="form-section" id="projektForm">
+	<div class="info-box">
+		<i class="fa-solid fa-circle-info"></i>
+		<span>Beim Anlegen eines Projektes gehen wir immer von 1 Stück aus. Die Anzahl bzw. Menge wird dann im Auftrag vermerkt!</span>
+	</div>
+
+    <form method="post" class="form" id="projektForm">
         <div class="form-group">
             <label for="projektname">Projektname</label>
             <input type="text" name="projektname" id="projektname" required>
@@ -84,12 +89,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 
 		<div class="form-group">
 			<label>Druckzeit</label>
-			<div style="display:flex; gap:5px; align-items:center;">
-				<input type="number" name="druckzeit_days" min="0" value="0" style="width:80px;"> Tage
-				<input type="number" name="druckzeit_hours" min="0" max="23" value="0" style="width:80px;"> Std
-				<input type="number" name="druckzeit_minutes" min="0" max="59" value="0" style="width:80px;"> Min
-				<input type="number" name="druckzeit_seconds" min="0" max="59" value="0" style="width:80px;"> Sek
-			</div>
+				<div class="zeit-eingabe">
+					<label>Gesamtdruckzeit (berechnet)</label>
+					<div id="gesamtzeitAnzeige" style="font-weight:bold; padding:6px 0;">0 T 0 h 0 min 0 s</div>
+				</div>
 		</div>
 
         <h3>Filamente für dieses Projekt</h3>
@@ -111,8 +114,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
                     <label>Menge (g)</label>
                     <input type="number" name="menge[0]" min="1" max="1500" required>
                 </div>
+
+				<div class="form-group" style="flex:1;">
+					<label>Druckzeit</label>
+					<div class="zeit-eingabe">
+						<label><span>Tage</span><input type="number" name="tage[0]" min="0" value="0" class="druckzeit-tag" style="width:60px;"></label>
+						<label><span>Stunden</span><input type="number" name="stunden[0]" min="0" max="23" value="0" class="druckzeit-hour" style="width:60px;"></label>
+						<label><span>Minuten</span><input type="number" name="minuten[0]" min="0" max="59" value="0" class="druckzeit-minute" style="width:60px;"></label>
+						<label><span>Sekunden</span><input type="number" name="sekunden[0]" min="0" max="59" value="0" class="druckzeit-second" style="width:60px;"></label>
+					</div>
+				</div>
+				
                 <div class="form-group" style="flex:0.5;">
-                    <button type="button" class="btn-action delete removeBlock" title="Entfernen">
+                    <button type="button" class="btn-action delete removeBlock" style="height:42px;width:42px;" title="Entfernen">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
@@ -124,7 +138,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
         <div style="margin-top:20px;">
 			<!-- Token -->
 			<input type="hidden" name="form_token" value="<?= htmlspecialchars(generate_form_token()) ?>">
-		
+
+			<!-- Versteckte Felder für Gesamtdruckzeit -->
+			<input type="hidden" name="druckzeit_days" value="0">
+			<input type="hidden" name="druckzeit_hours" value="0">
+			<input type="hidden" name="druckzeit_minutes" value="0">
+			<input type="hidden" name="druckzeit_seconds" value="0">		
+
             <button type="submit" name="submit" class="btn-primary">Projekt speichern</button>
         </div>
     </form>
@@ -132,14 +152,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 
 <script>
 let blockIndex = 1;
+
+// Optionen für Dropdown
 const filamentOptions = `<?php foreach($filamente as $f): ?>
 <option value="<?= $f['id'] ?>"><?= addslashes(htmlspecialchars($f['hr_name'] . " - " . $f['name_des_filaments'] . " (" . $f['material'] . ")")) ?></option>
 <?php endforeach; ?>`;
 
+// === Dynamisch neue Filament-Zeile hinzufügen ===
 document.getElementById('addFilament').addEventListener('click', () => {
     const container = document.createElement('div');
     container.className = 'filament-block form-row';
-    container.style = "display:flex; gap:10px; align-items:flex-end;";
+    container.style = "display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;";
     container.innerHTML = `
         <div class="form-group" style="flex:2;">
             <label>Filament</label>
@@ -148,12 +171,24 @@ document.getElementById('addFilament').addEventListener('click', () => {
                 ${filamentOptions}
             </select>
         </div>
+
         <div class="form-group" style="flex:1;">
             <label>Menge (g)</label>
             <input type="number" name="menge[${blockIndex}]" min="1" max="1500" required>
         </div>
+
+        <div class="form-group" style="flex:1;">
+            <label>Druckzeit</label>
+            <div class="zeit-eingabe">
+                <label><span>T</span><input type="number" name="tage[${blockIndex}]" min="0" value="0" class="druckzeit-tag" style="width:60px;"></label>
+                <label><span>H</span><input type="number" name="stunden[${blockIndex}]" min="0" max="23" value="0" class="druckzeit-hour" style="width:60px;"></label>
+                <label><span>M</span><input type="number" name="minuten[${blockIndex}]" min="0" max="59" value="0" class="druckzeit-minute" style="width:60px;"></label>
+                <label><span>S</span><input type="number" name="sekunden[${blockIndex}]" min="0" max="59" value="0" class="druckzeit-second" style="width:60px;"></label>
+            </div>
+        </div>
+
         <div class="form-group" style="flex:0.5;">
-            <button type="button" class="btn-action delete removeBlock" title="Entfernen">
+            <button type="button" class="btn-action delete removeBlock" style="height:42px;width:42px;" title="Entfernen">
                 <i class="fa-solid fa-trash"></i>
             </button>
         </div>
@@ -162,11 +197,59 @@ document.getElementById('addFilament').addEventListener('click', () => {
     blockIndex++;
 });
 
-// Entfernen Button
+// === Entfernen-Button ===
 document.getElementById('projektForm').addEventListener('click', function(e) {
     if (e.target && (e.target.classList.contains('removeBlock') || e.target.closest('.removeBlock'))) {
         const block = e.target.closest('.filament-block');
-        if(block) block.remove();
+        if (block) block.remove();
+        updateGesamtzeit(); // Nach Entfernen neu berechnen
     }
+});
+
+// === Gesamtdruckzeit berechnen ===
+function updateGesamtzeit() {
+    let totalSeconds = 0;
+
+    document.querySelectorAll('.filament-block').forEach(block => {
+        const tage = parseInt(block.querySelector('.druckzeit-tag')?.value || 0);
+        const stunden = parseInt(block.querySelector('.druckzeit-hour')?.value || 0);
+        const minuten = parseInt(block.querySelector('.druckzeit-minute')?.value || 0);
+        const sekunden = parseInt(block.querySelector('.druckzeit-second')?.value || 0);
+
+        totalSeconds += (tage * 86400) + (stunden * 3600) + (minuten * 60) + sekunden;
+    });
+
+    const totalDays = Math.floor(totalSeconds / 86400);
+    const totalHours = Math.floor((totalSeconds % 86400) / 3600);
+    const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+    const totalSecs = totalSeconds % 60;
+
+    // In versteckte Felder schreiben (werden vom PHP-Code genutzt)
+    document.querySelector('[name="druckzeit_days"]').value = totalDays;
+    document.querySelector('[name="druckzeit_hours"]').value = totalHours;
+    document.querySelector('[name="druckzeit_minutes"]').value = totalMinutes;
+    document.querySelector('[name="druckzeit_seconds"]').value = totalSecs;
+
+    // Live-Anzeige aktualisieren
+    const gesamtDiv = document.getElementById('gesamtzeitAnzeige');
+    if (gesamtDiv) {
+        gesamtDiv.textContent = `${totalDays} T ${totalHours} h ${totalMinutes} min ${totalSecs} s`;
+    }
+}
+
+// === Eventlistener für Änderungen in Zeitfeldern ===
+document.getElementById('projektForm').addEventListener('input', function(e) {
+    if (
+        e.target.classList.contains('druckzeit-tag') ||
+        e.target.classList.contains('druckzeit-hour') ||
+        e.target.classList.contains('druckzeit-minute') ||
+        e.target.classList.contains('druckzeit-second')
+    ) {
+        updateGesamtzeit();
+    }
+});
+// Beim Laden einmalig initialisieren
+document.addEventListener('DOMContentLoaded', () => {
+    updateGesamtzeit();
 });
 </script>

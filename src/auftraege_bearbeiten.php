@@ -124,12 +124,12 @@ $auftrag_pos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
         <div class="form-group">
             <label>Druckzeit (1 Stück)</label>
-            <div style="display:flex; gap:5px; align-items:center;">
-                <input type="number" name="days"    min="0" value="<?= floor($druckzeit_pro_stueck / 86400) ?>" style="width:60px;"> T
-                <input type="number" name="hours"   min="0" max="23" value="<?= floor(($druckzeit_pro_stueck % 86400) / 3600) ?>" style="width:60px;"> h
-                <input type="number" name="minutes" min="0" max="59" value="<?= floor(($druckzeit_pro_stueck % 3600) / 60) ?>" style="width:60px;"> m
-                <input type="number" name="seconds" min="0" max="59" value="<?= $druckzeit_pro_stueck % 60 ?>" style="width:60px;"> s
-            </div>
+			<div class="zeit-eingabe">
+				<label><span>Tage</span><input type="number" name="days" min="0" value="<?= floor($druckzeit_pro_stueck / 86400) ?>"></label>
+				<label><span>Stunden</span><input type="number" name="hours" min="0" max="23" value="<?= floor(($druckzeit_pro_stueck % 86400) / 3600) ?>"></label>
+				<label><span>Minuten</span><input type="number" name="minutes" min="0" max="59" value="<?= floor(($druckzeit_pro_stueck % 3600) / 60) ?>"></label>
+				<label><span>Sekunden</span><input type="number" name="seconds" min="0" max="59" value="<?= $druckzeit_pro_stueck % 60 ?>"></label>
+			</div>
         </div>
 
         <div class="form-group">

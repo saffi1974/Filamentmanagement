@@ -111,6 +111,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_auftrag'])) {
         <a href="index.php?site=auftraege" class="btn-primary">← Zurück zur Liste</a>
     </div>
 
+	<div class="info-box">
+		<i class="fa-solid fa-circle-info"></i>
+		<span>Beim Anlegen eines Auftrages wird die entsprechende Vorlage ausgewählt. Diese steht immer für die Anzahl bzw. Menge <stron>1</strong>!</span>
+	</div>
+
     <form method="post" class="form">
         <div class="form-group">
             <label for="projekt_id">Projekt auswählen</label>
@@ -181,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_auftrag'])) {
                                 <?= htmlspecialchars($pf['filament_name']) ?>
                             </td>
                             <td>
-                                <input type="number" step="0.01" name="position[<?= $i ?>][menge_geplant]" value="<?= $pf['menge_geplant'] ?>" required>
+                                <input type="number" step="1" name="position[<?= $i ?>][menge_geplant]" value="<?= $pf['menge_geplant'] ?>" required>
                             </td>
                             <td>
                                 <button type="button" onclick="this.closest('tr').remove()">❌ Entfernen</button>

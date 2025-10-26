@@ -5,21 +5,34 @@ require_once "form_token.php";
 require_once "auth.php";
 require_role(['superuser','admin']);
 
+// ✅ Token erzeugen, wenn noch keiner existiert
+if (!isset($_SESSION['form_token'])) {
+    $_SESSION['form_token'] = bin2hex(random_bytes(16));
+}
+
 // Hersteller und Materialien für Dropdown
 $herstellerRes = $conn->query("SELECT id, hr_name FROM hersteller ORDER BY hr_name");
 $materialRes = $conn->query("SELECT id, name FROM materialien ORDER BY name");
 
+
+// ✅ Formularverarbeitung
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
-	if (!validate_form_token($_POST['form_token'] ?? '')) {
-		$_SESSION['error'] = '
+
+    // Token prüfen
+    if (!isset($_POST['form_token']) || $_POST['form_token'] !== $_SESSION['form_token']) {
+        $_SESSION['error'] = '
             <div class="info-box">
                 <i class="fa-solid fa-circle-exclamation"></i>
                 <span>Das Formular wurde bereits verarbeitet oder ist ungültig.</span>
             </div>';
         header("Location: index.php?site=filamente");
         exit;
-	}
+    }
 
+ 	    // ✅ Token sofort verbrauchen → kein erneutes Absenden möglich
+    	unset($_SESSION['form_token']);
+
+		// Werte aus POST lesen
 		$hersteller_id = (int)$_POST['hersteller_id'];
 		$name = $_POST['name_des_filaments'];
 		$material_id = (int)$_POST['material_id'];
@@ -34,11 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 		// Anzahl Farben und HEX-Werte
 		$anzahl_farben = (int)$_POST['anzahl_farben'];
 		$farbenArray = array_slice($_POST['farben'], 0, (int)$_POST['anzahl_farben']);
-		// 🔹 Variante 1: JSON speichern
 		$farben = json_encode($farbenArray);
-
-		// 🔹 Variante 2: Komma-getrennt speichern
-		// $farben = implode(",", $farbenArray);
 
 		$stmt = $conn->prepare("INSERT INTO filamente (hersteller_id, name_des_filaments, material, preis, durchmesser, gewicht_des_filaments, artikelnummer_des_herstellers, duesentemperatur, betttemperatur, anzahl_farben, farben, kommentar) 
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -59,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 		);
 	
 		$stmt->execute();
+
 		$_SESSION['success'] = '
 		<div class="info-box">
 			<i class="fa-solid fa-circle-info"></i>

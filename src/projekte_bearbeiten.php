@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="error"><?= $_SESSION['error']; unset($_SESSION['error']); ?></div>
     <?php endif; ?>
 
-    <form method="post" class="form-section">
+    <form method="post" class="form">
         <div class="form-group">
             <label for="projektname">Projektname</label>
             <input type="text" id="projektname" name="projektname" 
@@ -119,48 +119,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="form-group">
             <label>Druckzeit (für 1 Stück)</label>
-            <div style="display:flex; gap:5px; align-items:center;">
-                <input type="number" id="druckzeit_days" name="druckzeit_days" min="0" value="<?= $druckzeit_days ?>" style="width:80px;"> Tage
-                <input type="number" id="druckzeit_hours" name="druckzeit_hours" min="0" max="23" value="<?= $druckzeit_hours ?>" style="width:80px;"> Std
-                <input type="number" id="druckzeit_minutes" name="druckzeit_minutes" min="0" max="59" value="<?= $druckzeit_minutes ?>" style="width:80px;"> Min
-                <input type="number" id="druckzeit_seconds" name="druckzeit_seconds" min="0" max="59" value="<?= $druckzeit_seconds ?>" style="width:80px;"> Sek
-            </div>
-        </div>
+			<div class="zeit-eingabe">
+				<label><span>Tage</span><input type="number" id="druckzeit_days" name="druckzeit_days" min="0" value="<?= $druckzeit_days ?>"></label>
+				<label><span>Stunden</span><input type="number" id="druckzeit_hours" name="druckzeit_hours" min="0" max="23" value="<?= $druckzeit_hours ?>"></label>
+				<label><span>Minuten</span><input type="number" id="druckzeit_minutes" name="druckzeit_minutes" min="0" max="59" value="<?= $druckzeit_minutes ?>"></label>
+				<label><span>Sekunden</span><input type="number" id="druckzeit_seconds" name="druckzeit_seconds" min="0" max="59" value="<?= $druckzeit_seconds ?>"></label>
+			</div>
+       </div>
 
         <h3>Filamente</h3>
-        <div id="filamentContainer">
-            <?php if ($projektFilamente): ?>
-                <?php foreach ($projektFilamente as $pf): ?>
-                    <div class="filament-row" style="display:flex; gap:10px; align-items:center;">
-                        <select name="filament_id[]">
-                            <option value="">-- Filament wählen --</option>
-                            <?php foreach ($alleFilamente as $f): ?>
-                                <option value="<?= $f['id'] ?>" <?= ($pf['filament_id'] == $f['id']) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($f['bezeichnung']) ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                        <input type="number" name="menge_geplant[]" value="<?= $pf['menge_geplant'] ?>" step="0.01" min="1" max="1500">
-                        <button type="button" class="btn-action delete" onclick="this.closest('.filament-row').remove();">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="filament-row" style="display:flex; gap:10px; align-items:center;">
+<div id="filamentContainer">
+    <?php if ($projektFilamente): ?>
+        <?php foreach ($projektFilamente as $pf): ?>
+            <div class="filament-block form-row" style="display:flex; gap:10px; align-items:flex-end;">
+                <div class="form-group" style="flex:2;">
+                    <label>Filament</label>
                     <select name="filament_id[]">
-                        <option value="">-- Filament wählen --</option>
+                        <option value="">Bitte wählen</option>
                         <?php foreach ($alleFilamente as $f): ?>
-                            <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['bezeichnung']) ?></option>
+                            <option value="<?= $f['id'] ?>" <?= ($pf['filament_id'] == $f['id']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($f['bezeichnung']) ?>
+                            </option>
                         <?php endforeach; ?>
                     </select>
-                    <input type="number" name="menge_geplant[]" value="0" step="0.01" min="1" max="1500">
-                    <button type="button" class="btn-action delete" onclick="this.closest('.filament-row').remove();">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label>Menge (g)</label>
+                    <input type="number" name="menge_geplant[]" value="<?= $pf['menge_geplant'] ?>" min="1" max="1500" required>
+                </div>
+                <div class="form-group" style="flex:0.5;">
+                    <button type="button" class="btn-action delete" style="height:42px;width:42px;" onclick="this.closest('.filament-block').remove();">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </div>
-            <?php endif; ?>
+            </div>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <div class="filament-block form-row" style="display:flex; gap:10px; align-items:flex-end;">
+            <div class="form-group" style="flex:2;">
+                <label>Filament</label>
+                <select name="filament_id[]">
+                    <option value="">Bitte wählen</option>
+                    <?php foreach ($alleFilamente as $f): ?>
+                        <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['bezeichnung']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="form-group" style="flex:1;">
+                <label>Menge (g)</label>
+                <input type="number" name="menge_geplant[]" min="1" max="1500" required>
+            </div>
+            <div class="form-group" style="flex:0.5;">
+                <button type="button" class="btn-action delete" style="height:42px;width:42px;" onclick="this.closest('.filament-block').remove();">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </div>
         </div>
+    <?php endif; ?>
+</div>
 
         <button type="button" onclick="addFilamentRow()" class="btn-primary">+ Filament hinzufügen</button>
 
@@ -174,23 +190,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 function addFilamentRow() {
     const wrapper = document.getElementById('filamentContainer');
     const row = document.createElement('div');
-    row.classList.add('filament-row');
-    row.style.display = 'flex';
-    row.style.gap = '10px';
-    row.style.alignItems = 'center';
+    row.className = 'filament-block form-row';
+    row.style = "display:flex; gap:10px; align-items:flex-end;";
 
     row.innerHTML = `
-        <select name="filament_id[]">
-            <option value="">-- Filament wählen --</option>
-            <?php foreach ($alleFilamente as $f): ?>
-                <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['bezeichnung']) ?></option>
-            <?php endforeach; ?>
-        </select>
-        <input type="number" name="menge_geplant[]" value="0" step="0.01" min="1" max="1500">
-        <button type="button" class="btn-action delete" onclick="this.closest('.filament-row').remove();">
-            <i class="fa-solid fa-trash"></i>
-        </button>
+        <div class="form-group" style="flex:2;">
+            <label>Filament</label>
+            <select name="filament_id[]" required>
+                <option value="">Bitte wählen</option>
+                <?php foreach ($alleFilamente as $f): ?>
+                    <option value="<?= $f['id'] ?>"><?= htmlspecialchars($f['bezeichnung']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group" style="flex:1;">
+            <label>Menge (g)</label>
+            <input type="number" name="menge_geplant[]" min="1" max="1500" required>
+        </div>
+        <div class="form-group" style="flex:0.5;">
+            <button type="button" class="btn-action delete" style="height:42px;width:42px;" onclick="this.closest('.filament-block').remove();">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
     `;
     wrapper.appendChild(row);
 }
+
 </script>

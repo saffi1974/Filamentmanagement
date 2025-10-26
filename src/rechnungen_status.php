@@ -7,7 +7,11 @@ $rechnung_id = $_GET['id'] ?? null;
 $status = $_GET['status'] ?? null;
 
 if (!$rechnung_id || !$status) {
-    $_SESSION['error'] = "Ungültiger Aufruf.";
+    $_SESSION['error'] = '
+	    <div class="info-box">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Ungültiger Aufruf.</span>
+        </div>';
     header("Location: index.php?site=rechnungen");
     exit;
 }
@@ -15,7 +19,11 @@ if (!$rechnung_id || !$status) {
 // Nur erlaubte Statuswerte
 $allowed = ['offen','bezahlt','storniert'];
 if (!in_array($status, $allowed)) {
-    $_SESSION['error'] = "Ungültiger Status.";
+    $_SESSION['error'] = '
+	    <div class="info-box">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Ungültiger Status.</span>
+        </div>';
     header("Location: index.php?site=rechnungen");
     exit;
 }
@@ -26,6 +34,10 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("si", $status, $rechnung_id);
 $stmt->execute();
 
-$_SESSION['success'] = "Rechnung erfolgreich auf '$status' gesetzt.";
+$_SESSION['success'] = '
+	    <div class="info-box">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Rechnung erfolgreich auf '. $status .' gesetzt.</span>
+        </div>';
 header("Location: index.php?site=rechnungen_details&id=".$rechnung_id);
 exit;

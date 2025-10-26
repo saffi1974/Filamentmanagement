@@ -78,8 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['status'])) {
 
     <div class="info-box">
         <i class="fa-solid fa-circle-info"></i>
-        <span>Dies ist die <strong>Detailansicht eines Auftrags</strong>. 
-        Hier kannst du Informationen ansehen, den Status ändern oder eine Druckansicht öffnen.</span>
+        <span>Dies ist die <strong>Detailansicht</strong> zum gewählten Auftrag. Aufträge können nur vom Admin oder Superuser geändert werden.</span>
     </div>
 
     <h3>Allgemeine Infos</h3>

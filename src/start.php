@@ -21,12 +21,67 @@ $anzahl_drucker = $conn->query("SELECT COUNT(*) AS c FROM drucker")->fetch_assoc
 $anzahl_benutzer = $conn->query("SELECT COUNT(*) AS c FROM user")->fetch_assoc()['c'];
 
 $anzahl_spulen = $conn->query("SELECT COUNT(*) AS c FROM spulenlager")->fetch_assoc()['c'];
+$verbrauch_filament = $conn->query("SELECT SUM(verbrauchtes_filament) AS summe FROM spulenlager")->fetch_assoc()['summe'] ?? 0;
 
 $anzahl_filament = $conn->query("SELECT COUNT(*) AS c FROM filamente")->fetch_assoc()['c'];
 
 $umsatz_gesamt = $conn->query("SELECT SUM(gesamtbetrag) AS summe FROM rechnungen WHERE status='bezahlt'")->fetch_assoc() ['summe'] ?? 0;
 $umsatz_jahr = $conn->query("SELECT SUM(gesamtbetrag) AS summe FROM rechnungen WHERE status='bezahlt' AND YEAR(datum)=YEAR(CURDATE())")->fetch_assoc() ['summe'] ?? 0;
 $umsatz_monat = $conn->query("SELECT SUM(gesamtbetrag) AS summe FROM rechnungen WHERE status='bezahlt' AND YEAR(datum)=YEAR(CURDATE()) AND MONTH(datum)=MONTH(CURDATE())")->fetch_assoc() ['summe'] ?? 0;
+
+// Verbrauch nach Hersteller
+$verbrauch_hersteller = [];
+$res = $conn->query("
+    SELECT h.hr_name AS hersteller, SUM(s.verbrauchtes_filament) AS gesamt
+    FROM spulenlager s
+    JOIN filamente f ON s.filament_id = f.id
+    JOIN hersteller h ON f.hersteller_id = h.id
+    GROUP BY h.hr_name
+    ORDER BY gesamt DESC
+");
+while ($row = $res->fetch_assoc()) {
+    $verbrauch_hersteller[] = [
+        'hersteller' => $row['hersteller'],
+        'gesamt' => (float)$row['gesamt']
+    ];
+}
+// Meistgedruckter Hersteller
+$top_hersteller = $conn->query("
+    SELECT h.hr_name AS hersteller, SUM(s.verbrauchtes_filament) AS gesamt
+    FROM spulenlager s
+    JOIN filamente f ON s.filament_id = f.id
+    JOIN hersteller h ON f.hersteller_id = h.id
+    GROUP BY h.hr_name
+    ORDER BY gesamt DESC
+    LIMIT 1
+")->fetch_assoc();
+
+// Verbrauch nach Filamenttyp
+$verbrauch_filamenttypen = [];
+$res = $conn->query("
+    SELECT m.name AS materialname, SUM(s.verbrauchtes_filament) AS gesamt
+    FROM spulenlager s
+    JOIN filamente f ON s.filament_id = f.id
+    JOIN materialien m ON f.material = m.id
+    GROUP BY m.name
+    ORDER BY gesamt DESC
+");
+while ($row = $res->fetch_assoc()) {
+    $verbrauch_filamenttypen[] = [
+        'typ' => $row['materialname'],
+        'gesamt' => (float)$row['gesamt']
+    ];
+}
+// Meistgedrucktes Material
+$top_material = $conn->query("
+    SELECT m.name AS materialname, SUM(s.verbrauchtes_filament) AS gesamt
+    FROM spulenlager s
+    JOIN filamente f ON s.filament_id = f.id
+    JOIN materialien m ON f.material = m.id
+    GROUP BY m.name
+    ORDER BY gesamt DESC
+    LIMIT 1
+")->fetch_assoc();
 
 // Umsatzentwicklung (aktuelles Jahr)
 $umsatzLabels = [];
@@ -71,13 +126,22 @@ while ($row = $res->fetch_assoc()) {
 		<table class="styled-table">
 			<tbody>
 				<tr>
-					<td style="width:70%;">Spulen im Lager:</td><td class="right"><?= $anzahl_spulen ?></td>
+					<td style="width:50%;">Spulen im Lager:</td><td class="right"><?= $anzahl_spulen ?></td>
 				</tr>
 				<tr>
 					<td>Filamenttypen:</td><td class="right"><?= $anzahl_filament ?></td>
 				</tr>
 				<tr>
 					<td>Hersteller:</td><td class="right"><?= $anzahl_hersteller ?></td>			
+				</tr>
+				<tr>
+					<td>Filamentverbrauch:</td><td class="right"><?= number_format($verbrauch_filament / 1000, 2, ',', '.') ?> kg</td>			
+				</tr>
+				<tr>
+					<td>Top-Hersteller:</td><td class="right"><?= htmlspecialchars($top_hersteller['hersteller'] ?? '–') ?> (<?= number_format(($top_hersteller['gesamt'] ?? 0) / 1000, 2, ',', '.') ?> kg)</td>			
+				</tr>
+				<tr>
+					<td>Top-Material:</td><td class="right"><?= htmlspecialchars($top_material['materialname'] ?? '–') ?> (<?= number_format(($top_material['gesamt'] ?? 0) / 1000, 2, ',', '.') ?> kg)</td>			
 				</tr>
 			</tbody>
 			<tfoot>
@@ -96,7 +160,7 @@ while ($row = $res->fetch_assoc()) {
 		<table class="styled-table">
 			<tbody>
 				<tr>
-					<td style="width:70%;">Kunden:</td><td class="right"><?= $anzahl_kunden ?></td>
+					<td style="width:50%;">Kunden:</td><td class="right"><?= $anzahl_kunden ?></td>
 				</tr>
 				<tr>
 					<td>Drucker:</td><td class="right"><?= $anzahl_drucker ?></td>
@@ -121,7 +185,7 @@ while ($row = $res->fetch_assoc()) {
 		<table class="styled-table">
 			<tbody>
 				<tr>
-					<td style="width:70%;">Aufträge gesamt:</td><td class="right"><?= $auftraegeCount ?></td>
+					<td style="width:50%;">Aufträge gesamt:</td><td class="right"><?= $auftraegeCount ?></td>
 				</tr>
 				<tr>
 					<td>Offene Aufträge:</td><td class="right"><?= $offene_auftraege ?></td>
@@ -146,7 +210,7 @@ while ($row = $res->fetch_assoc()) {
 		<table class="styled-table">
 			<tbody>
 				<tr>
-					<td style="width:70%;">Umsatz diesen Monat:</td><td class="right"><?= number_format($umsatz_monat, 2, ',', '.') ?> €</td>
+					<td style="width:50%;">Umsatz diesen Monat:</td><td class="right"><?= number_format($umsatz_monat, 2, ',', '.') ?> €</td>
 				</tr>
 				<tr>
 					<td>Umsatz dieses Jahr:</td><td class="right"><?= number_format($umsatz_jahr, 2, ',', '.') ?> €</td>
@@ -177,7 +241,15 @@ while ($row = $res->fetch_assoc()) {
 		<h2 class="text-xl font-bold text-gray-800 mb-4">Aufträge nach Status</h2>
 		<canvas id="auftraegeChart" class="w-full"></canvas>
 	</div>
-
+	
+	<div class="card-diagramm bg-white rounded-2xl shadow p-6 w-full">
+		<h2 class="text-xl font-bold text-gray-800 mb-4">Hersteller Rating</h2>
+		<canvas id="verbrauchHerstellerChart" class="w-full my-4"></canvas>
+	</div>
+	<div class="card-diagramm bg-white rounded-2xl shadow p-6 w-full">
+		<h2 class="text-xl font-bold text-gray-800 mb-4">Filament Rating</h2>
+		<canvas id="verbrauchTypChart" class="w-full"></canvas>
+	</div>
 </div>
 
 </section>
@@ -226,6 +298,49 @@ window.auftraegeChartInstance = new Chart(document.getElementById('auftraegeChar
   options: {
     responsive: true,
     maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } }
+  }
+});
+// Verbrauch nach Hersteller
+const herstellerLabels = <?= json_encode(array_column($verbrauch_hersteller, 'hersteller')) ?>;
+const herstellerDaten = <?= json_encode(array_column($verbrauch_hersteller, 'gesamt')) ?>;
+
+new Chart(document.getElementById('verbrauchHerstellerChart'), {
+  type: 'bar',
+  data: {
+    labels: herstellerLabels,
+    datasets: [{
+      label: 'Verbrauch (g)',
+      data: herstellerDaten,
+      backgroundColor: '#10b981',
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } }
+  }
+});
+
+// Verbrauch nach Filamenttyp
+const typLabels = <?= json_encode(array_column($verbrauch_filamenttypen, 'typ')) ?>;
+const typDaten = <?= json_encode(array_column($verbrauch_filamenttypen, 'gesamt')) ?>;
+
+new Chart(document.getElementById('verbrauchTypChart'), {
+  type: 'bar',
+  data: {
+    labels: typLabels,
+    datasets: [{
+      label: 'Verbrauch (g)',
+      data: typDaten,
+      backgroundColor: '#3b82f6',
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true,
     plugins: { legend: { display: false } },
     scales: { y: { beginAtZero: true } }
   }
