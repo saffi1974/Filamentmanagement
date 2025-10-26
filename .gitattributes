@@ -1,0 +1,82 @@
+###############################################################################
+# Einheitliche Zeilenenden (LF)
+###############################################################################
+* text=auto eol=lf
+* working-tree-encoding=UTF-8
+
+###############################################################################
+# Web-Dateien (immer als Text behandeln)
+###############################################################################
+*.php      text eol=lf
+*.html     text eol=lf
+*.htm      text eol=lf
+*.css      text eol=lf
+*.js       text eol=lf
+*.json     text eol=lf
+*.xml      text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+*.txt      text eol=lf
+*.md       text eol=lf
+*.sql      text eol=lf
+*.ini      text eol=lf
+*.env      text eol=lf
+*.conf     text eol=lf
+*.csv      text eol=lf
+
+###############################################################################
+# Windows-spezifische Skripte (dürfen CRLF behalten)
+###############################################################################
+*.bat      text eol=crlf
+*.cmd      text eol=crlf
+
+###############################################################################
+# Binärdateien (niemals konvertieren!)
+###############################################################################
+*.png      binary
+*.jpg      binary
+*.jpeg     binary
+*.gif      binary
+*.ico      binary
+*.bmp      binary
+*.pdf      binary
+*.zip      binary
+*.tar      binary
+*.gz       binary
+*.7z       binary
+*.rar      binary
+*.exe      binary
+*.dll      binary
+*.so       binary
+*.ttf      binary
+*.otf      binary
+*.woff     binary
+*.woff2    binary
+*.mp3      binary
+*.wav      binary
+*.mp4      binary
+*.mov      binary
+*.avi      binary
+
+###############################################################################
+# Office- und Grafikdateien
+###############################################################################
+*.docx     binary
+*.xlsx     binary
+*.pptx     binary
+*.ods      binary
+*.odt      binary
+*.odp      binary
+*.psd      binary
+*.ai       binary
+*.svg      text eol=lf
+
+###############################################################################
+# Projekt- und Konfigurationsdateien
+###############################################################################
+.gitattributes  text eol=lf
+.gitignore      text eol=lf
+.editorconfig   text eol=lf
+Dockerfile      text eol=lf
+*.sh            text eol=lf
+*.dockerfile    text eol=lf
