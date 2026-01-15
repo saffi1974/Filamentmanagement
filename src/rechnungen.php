@@ -18,15 +18,16 @@ $totalRow = $totalRes->fetch_assoc();
 $totalEntries = $totalRow['total'];
 $totalPages = ceil($totalEntries / $limit);
 
-// Rechnungen laden mit Kunde
+// Rechnungen laden mit Kunde & vereinbartem Preis
 $sql = "SELECT r.*, 
                k.firma, k.ansprechpartner, k.strasse, k.plz, k.ort, k.telefon,
-			   a.name AS auftragsname,
-			   p.projektname
+               a.name AS auftragsname,
+               a.preis_vereinbart,
+               p.projektname
         FROM rechnungen r
         LEFT JOIN kunden k ON r.kunde_id = k.id
-		LEFT JOIN auftraege a ON r.auftrag_id = a.id
-		LEFT JOIN projekte p ON a.projekt_id = p.id
+        LEFT JOIN auftraege a ON r.auftrag_id = a.id
+        LEFT JOIN projekte p ON a.projekt_id = p.id
         ORDER BY r.id DESC
         LIMIT $start, $limit";
 $res = $conn->query($sql);
@@ -35,7 +36,7 @@ $res = $conn->query($sql);
 <section class="card">
     <div class="card-header">
         <h2>Rechnungen</h2>
-		<div><a href="index.php?site=auftraege" class="btn-primary">← zu den Aufträgen</a></div>
+        <div><a href="index.php?site=auftraege" class="btn-primary">← zu den Aufträgen</a></div>
     </div>
 
     <?php if (isset($_SESSION['success'])): ?>
@@ -51,10 +52,11 @@ $res = $conn->query($sql);
                 <tr>
                     <th class="center" style="width:8%;">Nr.</th>
                     <th class="left" style="width:12%;">Kunde</th>
-					<th class="left" style="widht:15%;">Auftrag</th>
-					<th class="left" style="widht:10%">Vorlage</th>
+                    <th class="left" style="width:15%;">Auftrag</th>
+                    <th class="left" style="width:10%;">Vorlage</th>
                     <th class="center" style="width:8%;">Datum</th>
-                    <th class="center" style="width:10%;" class="right">Betrag (€)</th>
+                    <th class="right" style="width:10%;">Betrag (€)</th>
+                    <th class="right" style="width:10%;">Preis (vereinbart)</th>
                     <th style="width:5%;">Status</th>
                     <th style="width:10%;">Aktionen</th>
                 </tr>
@@ -64,10 +66,18 @@ $res = $conn->query($sql);
                 <tr>
                     <td><?= htmlspecialchars($r['rechnungsnummer']) ?></td>
                     <td><?= htmlspecialchars($r['firma'] ?: $r['ansprechpartner']) ?></td>
-					<td><?= htmlspecialchars($r['auftragsname'] ?? '-') ?></td>
-					<td><?= htmlspecialchars($r['projektname'] ?? '-') ?></td>
+                    <td><?= htmlspecialchars($r['auftragsname'] ?? '-') ?></td>
+                    <td><?= htmlspecialchars($r['projektname'] ?? '-') ?></td>
                     <td><?= htmlspecialchars($r['datum']) ?></td>
+
+                    <!-- Gesamtbetrag -->
                     <td class="right"><?= number_format($r['gesamtbetrag'], 2, ',', '.') ?> €</td>
+
+                    <!-- Vereinbarter Preis -->
+                    <td class="right" style="color:<?= ($r['preis_vereinbart'] ?? 0) != ($r['gesamtbetrag'] ?? 0) ? '#e67e22' : '#27ae60' ?>">
+                        <?= $r['preis_vereinbart'] !== null ? number_format($r['preis_vereinbart'], 2, ',', '.') . ' €' : '–' ?>
+                    </td>
+
                     <td>
                         <?php
                         $status = $r['status'];
@@ -76,6 +86,7 @@ $res = $conn->query($sql);
                         elseif ($status === 'storniert') echo "<span class='status-badge status-cancel'>Storniert</span>";
                         ?>
                     </td>
+
                     <td class="actions center">
                         <a href="index.php?site=rechnungen_details&id=<?= $r['id'] ?>" class="btn-action view" title="Details">
                             <i class="fa-solid fa-eye"></i>
@@ -83,11 +94,11 @@ $res = $conn->query($sql);
                         <a href="index.php?site=rechnungen_bearbeiten&id=<?= $r['id'] ?>" class="btn-action edit" title="Bearbeiten">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </a>
-						<?php if(isset($_SESSION['username'])) { ?>
+                        <?php if(isset($_SESSION['username'])) { ?>
                         <a href="index.php?site=rechnungen_loeschen&id=<?= $r['id'] ?>" class="btn-action delete" title="Löschen">
                             <i class="fa-solid fa-trash"></i>
                         </a>
-						<?php } ?>
+                        <?php } ?>
                     </td>
                 </tr>
                 <?php endwhile; ?>

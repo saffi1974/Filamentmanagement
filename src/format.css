@@ -574,3 +574,100 @@ body {
   border-radius: 6px;
   text-align: right;
 }
+/* ========================= */
+/* Einheitliches Design für Farb-Dropdown */
+/* ========================= */
+.color-dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.color-dropdown {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- sichtbares Feld (ähnlich wie .form-group select) --- */
+.color-dropdown .selected {
+  background: #f9f9f9;          /* gleiche Hintergrundfarbe wie Inputs */
+  border: 1px solid #ccc;       /* gleicher Rahmen */
+  border-radius: 6px;
+  padding: 10px;                /* wie .form-group input */
+  font-size: 1em;
+  color: #2c3e50;               /* gleiche Textfarbe */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.3s;
+  height: 42px;                 /* gleiche Höhe wie Standard-Select */
+  box-sizing: border-box;
+}
+
+/* Fokuseffekt wie bei Input-Feldern */
+.color-dropdown:focus-within .selected,
+.color-dropdown.open .selected {
+  border-color: #3b5998;
+  outline: none;
+}
+
+/* --- Dropdown-Liste --- */
+.color-dropdown .dropdown-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  z-index: 10;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.color-dropdown.open .dropdown-list {
+  display: block;
+}
+
+/* --- einzelne Listeneinträge --- */
+.color-dropdown .dropdown-item {
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: #fff;
+  transition: background 0.2s;
+}
+
+.color-dropdown .dropdown-item:hover {
+  background: #e8ecef;  /* gleiche Hoverfarbe wie Tabellen */
+}
+
+/* --- Farbfeld --- */
+.color-dropdown .color-box {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #999;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+/* --- Label im Formular --- */
+.color-dropdown-container label {
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #2c3e50;
+  display: block;
+}
+.form-group input,
+.form-group select,
+.form-group textarea,
+.color-dropdown .selected {
+  height: 42px;
+}

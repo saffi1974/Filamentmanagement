@@ -1,7 +1,12 @@
 <?php
 if (session_status() === PHP_SESSION_NONE) {
+	// 🔒 Session-Lebensdauer verlängern (z. B. 12 Stunden)
+	ini_set('session.gc_maxlifetime', 43200);   // 12 Stunden in Sekunden
+	ini_set('session.cookie_lifetime', 43200);  // Cookie-Gültigkeit 12 Stunden
+
     session_start();
 }
+
 
 /**
  * Prüft, ob der Benutzer eingeloggt ist.

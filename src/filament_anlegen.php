@@ -82,7 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
 <section class="form-section">
   <h2>Neues Filament anlegen</h2>
   <form method="post" action="index.php?site=filament_anlegen">
-    
+
+ 	<div class="info-box">
+		<i class="fa-solid fa-circle-info"></i>
+		<span>Vor dem Anlegen eines neuen Filaments bitte im <a href="index.php?site=lager_suche">Lager überprüfen!</a></span>
+	</div>   
+
     <div class="form-group">
       <label for="hersteller_id">Hersteller</label>
       <select id="hersteller_id" name="hersteller_id" required>

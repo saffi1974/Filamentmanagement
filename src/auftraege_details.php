@@ -116,6 +116,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['status'])) {
         <span><?= $auftrag['status'] ?></span>
     </div>
 	
+	<?php if (!empty($auftrag['preis_vereinbart'])): ?>
+	<div class="form-group">
+		<label>Vereinbarter Preis:</label>
+		<span><?= number_format($auftrag['preis_vereinbart'], 2, ',', '.') ?> €</span>
+	</div>
+	
+		<?php if (!empty($auftrag['preis_notiz'])): ?>
+		<div class="form-group">
+			<label>Notiz:</label>
+			<span><?= htmlspecialchars($auftrag['preis_notiz']) ?></span>
+		</div>
+
+		<?php endif; ?>
+	<?php endif; ?>
+
+	
 	<?php if (isset($_SESSION['rolle']) && in_array($_SESSION['rolle'], ['superuser','admin', 'user'])): ?>
 		<?php if ($auftrag['status'] !== 'fertig'): ?>
 			<form method="post" style="margin-top:15px;">

@@ -34,6 +34,7 @@ $site = $_GET['site'] ?? "start";
                     <ul class="submenu">
                         <li><a href="index.php?site=projekte"><i class="fa-solid fa-list"></i>Vorlagenliste</a></li>
                         <li><a href="index.php?site=projekte_anlegen"><i class="fa-solid fa-plus"></i>Vorlage erstellen</a></li>
+						<li><a href="index.php?site=kosten_vorschlag"><i class="fa-solid fa-plus"></i>Kostenvorschlag erstellen</a></li>
                     </ul>
                 </li>
 
@@ -42,6 +43,7 @@ $site = $_GET['site'] ?? "start";
                     <a href="#"><i class="fa-solid fa-warehouse"></i><span>Lager</span></a>
                     <ul class="submenu">
                         <li><a href="index.php?site=spulen"><i class="fa-solid fa-record-vinyl"></i>Spulen</a></li>
+						<li><a href="index.php?site=lager_suche"><i class="fa-solid fa-magnifying-glass"></i> Lager durchsuchen</a></li>
                         <li><a href="index.php?site=buchungen"><i class="fa-solid fa-plus"></i>Wareneingang</a></li>
                         <li><a href="index.php?site=lagerbewegungen"><i class="fa-solid fa-arrows-left-right"></i>Warenbewegungen</a></li>
                     </ul>

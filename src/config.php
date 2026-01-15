@@ -52,4 +52,7 @@ $dateien['rechnungen_loeschen'] = "rechnungen_loeschen.php";
 $dateien['rechnungen_status'] = "rechnungen_status.php";
 $dateien['betriebskosten'] = "betriebskosten.php";
 $dateien['firmendaten'] = "firmendaten.php";
+$dateien['kosten_vorschlag'] = "kosten_vorschlag.php";
+$dateien['lager_suche'] = "lager_suche.php";
+
 ?>

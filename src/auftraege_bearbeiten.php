@@ -57,21 +57,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_auftrag'])) {
     $stunden  = (int)($_POST['hours'] ?? 0);
     $minuten  = (int)($_POST['minutes'] ?? 0);
     $sekunden = (int)($_POST['seconds'] ?? 0);
-
-    $druckzeit_pro_stueck = $tage*86400 + $stunden*3600 + $minuten*60 + $sekunden;
+    $druckzeit_pro_stueck = $tage * 86400 + $stunden * 3600 + $minuten * 60 + $sekunden;
     $gesamt_druckzeit = $druckzeit_pro_stueck * $anzahl;
 
+    $preis_vereinbart = !empty($_POST['preis_vereinbart']) ? (float)$_POST['preis_vereinbart'] : null;
+    $preis_notiz = trim($_POST['preis_notiz']);
+
     $sql = "UPDATE auftraege 
-            SET kunde_id=?, name=?, datum=?, anzahl=?, status=?, druckzeit_seconds=? 
+            SET kunde_id=?, name=?, datum=?, anzahl=?, preis_vereinbart=?, preis_notiz=?, status=?, druckzeit_seconds=? 
             WHERE id=?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("issisii", $kunde_id, $name, $datum, $anzahl, $status, $gesamt_druckzeit, $auftrag_id);
+    $stmt->bind_param(
+        "issidssii",
+        $kunde_id,
+        $name,
+        $datum,
+        $anzahl,
+        $preis_vereinbart,
+        $preis_notiz,
+        $status,
+        $gesamt_druckzeit,
+        $auftrag_id
+    );
     $stmt->execute();
 
     $_SESSION['success'] = '<div class="info-box"><i class="fa-solid fa-circle-check"></i> Auftrag aktualisiert.</div>';
     header("Location: index.php?site=auftraege");
     exit;
 }
+
 
 // -----------------------------
 // Positionen laden
@@ -131,6 +145,18 @@ $auftrag_pos = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 				<label><span>Sekunden</span><input type="number" name="seconds" min="0" max="59" value="<?= $druckzeit_pro_stueck % 60 ?>"></label>
 			</div>
         </div>
+
+		<div class="form-group">
+		  <label for="preis_vereinbart">Vereinbarter Preis (€)</label>
+		  <input type="number" step="0.01" id="preis_vereinbart" name="preis_vereinbart"
+				 value="<?= htmlspecialchars($auftrag['preis_vereinbart'] ?? '') ?>">
+		</div>
+
+		<div class="form-group">
+		  <label for="preis_notiz">Bemerkung zum Preis</label>
+		  <textarea id="preis_notiz" name="preis_notiz" rows="2"
+					placeholder="z. B. Freundschaftspreis, Testdruck"><?= htmlspecialchars($auftrag['preis_notiz'] ?? '') ?></textarea>
+		</div>
 
         <div class="form-group">
             <label for="status">Status</label>
