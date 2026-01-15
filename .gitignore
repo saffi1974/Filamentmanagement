@@ -21,8 +21,10 @@ phpmyadmin/
 !/src/images/.gitkeep
 
 # SQL-Skripte – nur bestimmte Dateien erlauben
-/sql/*
-!/sql/*.sql
+!sql/
+sql/*
+!sql/*.sql
+
 
 # Sessions, Logs & temporäre Dateien
 *.log
