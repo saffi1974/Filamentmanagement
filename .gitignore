@@ -9,7 +9,7 @@ phpmyadmin/
 
 # Backups & Dumps
 /src/backups/
-*.sql
+#*.sql
 *.zip
 *.tar.gz
 
