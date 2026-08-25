@@ -76,49 +76,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'stunden' => $stunden,
             'minuten' => $minuten,
             'sekunden' => $sekunden,
+			'preis' => $preis,
             'materialkosten' => $materialkosten,
             'stromkosten' => $stromkosten,
             'summe' => $summe
         ];
     }
 
-    // --- Betriebskosten ---
-    if (!empty($_POST['kosten'])) {
-        foreach ($_POST['kosten'] as $kosten_id => $pos) {
-            if (empty($pos['selected'])) continue;
+	// --- Betriebskosten ---
+	if (!empty($_POST['kosten'])) {
 
-            $kosten_id = (int)$kosten_id;
-            $anzahl = (float)($pos['anzahl'] ?? 1);
+		$basis_produktionskosten = $gesamt_filament + $gesamt_stromkosten;
 
-            $stmt = $conn->prepare("SELECT kostenart, standard_betrag, einheit FROM betriebskosten WHERE id=?");
-            $stmt->bind_param("i", $kosten_id);
-            $stmt->execute();
-            $row = $stmt->get_result()->fetch_assoc();
+		foreach ($_POST['kosten'] as $kosten_id => $pos) {
 
-            $beschreibung = $row['kostenart'];
-            $betrag = (float)$row['standard_betrag'];
-            $kosten = 0;
+			if (empty($pos['selected'])) continue;
 
-            switch ($row['einheit']) {
-                case 'pro_stunde':
-                    $total_hours = $gesamt_druckzeit_s / 3600;
-                    $kosten = $betrag * $total_hours * $anzahl;
-                    break;
-                default:
-                    $kosten = $betrag * $anzahl;
-                    break;
-            }
+			$kosten_id = (int)$kosten_id;
+			$anzahl = (float)($pos['anzahl'] ?? 1);
 
-            $gesamt_betrieb += $kosten;
-            $extraKosten[] = [
-                'beschreibung' => $beschreibung,
-                'einheit' => $row['einheit'],
-                'betrag' => $kosten
-            ];
-        }
-    }
+			$stmt = $conn->prepare("SELECT kostenart, standard_betrag, einheit FROM betriebskosten WHERE id=?");
+			$stmt->bind_param("i", $kosten_id);
+			$stmt->execute();
+			$row = $stmt->get_result()->fetch_assoc();
 
-    $gesamt += $gesamt_betrieb;
+			$beschreibung = $row['kostenart'];
+			$betrag = (float)$row['standard_betrag'];
+			$kosten = 0;
+
+			switch ($row['einheit']) {
+
+				case 'pro_stunde':
+					$total_hours = $gesamt_druckzeit_s / 3600;
+					$kosten = $betrag * $total_hours * $anzahl;
+					break;
+
+				case 'prozent':
+					// Prozent immer auf Produktionskosten
+					$kosten = ($basis_produktionskosten * $betrag / 100) * $anzahl;
+					break;
+
+				default:
+					$kosten = $betrag * $anzahl;
+					break;
+			}
+
+			$gesamt_betrieb += $kosten;
+
+			$extraKosten[] = [
+				'beschreibung' => $beschreibung,
+				'einheit' => $row['einheit'],
+				'betrag' => $kosten
+			];
+		}
+	}
+
+	$gesamt += $gesamt_betrieb;
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_project'])) {
     $projektname = trim($_POST['projektname'] ?? '');
@@ -247,11 +260,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_project'])) {
       <tbody>
         <?php foreach($betriebskosten as $b): ?>
         <tr>
-          <td><?= htmlspecialchars($b['kostenart']) ?></td>
-          <td class="right"><?= number_format($b['standard_betrag'],2,',','.') ?></td>
-          <td><?= htmlspecialchars($b['einheit']) ?></td>
-          <td><input type="number" name="kosten[<?= $b['id'] ?>][anzahl]" value="<?= htmlspecialchars($_POST['kosten'][$b['id']]['anzahl'] ?? 1) ?>" min="1"></td>
-          <td><input type="checkbox" name="kosten[<?= $b['id'] ?>][selected]" value="1" <?= !empty($_POST['kosten'][$b['id']]['selected']) ? 'checked' : '' ?>></td>
+          <td class="left"><?= htmlspecialchars($b['kostenart']) ?></td>
+          <td class="center"><?= number_format($b['standard_betrag'],2,',','.') ?></td>
+          <td class="center"><?= htmlspecialchars($b['einheit']) ?></td>
+          <td class="center"><input type="number" name="kosten[<?= $b['id'] ?>][anzahl]" value="<?= htmlspecialchars($_POST['kosten'][$b['id']]['anzahl'] ?? 1) ?>" min="1"></td>
+          <td class="center"><input type="checkbox" name="kosten[<?= $b['id'] ?>][selected]" value="1" <?= !empty($_POST['kosten'][$b['id']]['selected']) ? 'checked' : '' ?>></td>
         </tr>
         <?php endforeach; ?>
       </tbody>
@@ -266,26 +279,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_project'])) {
   <h3>Kostenaufstellung</h3>
 
   <!-- I. Filamentkosten -->
-  <h4>I. Filamentkosten</h4>
+
   <table class="styled-table">
-    <thead><tr><th>Filament</th><th>Menge (g)</th><th>Druckzeit</th><th>Material (€)</th><th>Strom (€)</th><th>Summe (€)</th></tr></thead>
+    <thead><tr><th>Filament</th><th>Preis</th><th>Menge (g)</th><th>Druckzeit</th><th>Material (€)</th><th>Strom (€)</th><th>Summe (€)</th></tr></thead>
     <tbody>
       <?php foreach($ergebnis as $r): ?>
       <tr>
         <td><?= htmlspecialchars($r['filament_name']) ?></td>
-        <td class="right"><?= number_format($r['menge'],2,',','.') ?></td>
-        <td><?= "{$r['tage']}T {$r['stunden']}h {$r['minuten']}m {$r['sekunden']}s" ?></td>
-        <td class="right"><?= number_format($r['materialkosten'],2,',','.') ?></td>
-        <td class="right"><?= number_format($r['stromkosten'],2,',','.') ?></td>
+		<td class="center"><?= number_format($r['preis'],2,',','.') ?></td>
+        <td class="center"><?= number_format($r['menge'],2,',','.') ?></td>
+        <td class="center"><?= "{$r['tage']}T {$r['stunden']}h {$r['minuten']}m {$r['sekunden']}s" ?></td>
+        <td class="center"><?= number_format($r['materialkosten'],2,',','.') ?></td>
+        <td class="center"><?= number_format($r['stromkosten'],2,',','.') ?></td>
         <td class="right"><strong><?= number_format($r['summe'],2,',','.') ?></strong></td>
       </tr>
       <?php endforeach; ?>
     </tbody>
     <tfoot>
       <tr>
-        <td colspan="3"><strong>Zwischensumme Filament</strong></td>
-        <td class="right"><strong><?= number_format($gesamt_filament,2,',','.') ?></strong></td>
-        <td class="right"><strong><?= number_format($gesamt_stromkosten,2,',','.') ?></strong></td>
+        <td colspan="4"><strong>Zwischensumme Filament</strong></td>
+        <td class="center"><strong><?= number_format($gesamt_filament,2,',','.') ?></strong></td>
+        <td class="center"><strong><?= number_format($gesamt_stromkosten,2,',','.') ?></strong></td>
         <td class="right"><strong><?= number_format($gesamt_filament + $gesamt_stromkosten,2,',','.') ?></strong></td>
       </tr>
     </tfoot>
@@ -293,14 +307,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_project'])) {
 
   <!-- II. Betriebskosten -->
   <?php if ($extraKosten): ?>
-  <h4>II. Betriebskosten</h4>
+  
+  <p></p>
+  
   <table class="styled-table">
-    <thead><tr><th>Art</th><th>Einheit</th><th>Betrag (€)</th></tr></thead>
+    <thead><tr><th class="left">Art</th><th>Einheit</th><th class="right">Betrag (€)</th></tr></thead>
     <tbody>
       <?php foreach($extraKosten as $k): ?>
       <tr>
         <td><?= htmlspecialchars($k['beschreibung']) ?></td>
-        <td><?= htmlspecialchars($k['einheit']) ?></td>
+        <td class="center"><?= htmlspecialchars($k['einheit']) ?></td>
         <td class="right"><?= number_format($k['betrag'],2,',','.') ?></td>
       </tr>
       <?php endforeach; ?>
@@ -312,7 +328,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_project'])) {
   <?php endif; ?>
 
   <!-- III. Gesamtsumme -->
-  <h4>III. Gesamtsumme</h4>
+  
+  <p></p>
+  
   <table class="styled-table">
     <tr><td><strong>Gesamtbetrag aller Positionen:</strong></td><td class="right"><strong><?= number_format($gesamt,2,',','.') ?> €</strong></td></tr>
   </table>

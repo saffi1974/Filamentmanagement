@@ -189,52 +189,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
     $stmt->bind_param("isdsdd", $rechnung_id, $beschreibung, $menge, $einheit, $preis_pro_einheit, $gesamt);
     $stmt->execute();
 
-    // Zusätzliche Betriebskosten speichern
-    if (!empty($_POST['kosten'])) {
-        foreach ($_POST['kosten'] as $kosten_id => $pos) {
-            if (empty($pos['selected'])) continue;
+	// Zusätzliche Betriebskosten speichern
+	if (!empty($_POST['kosten'])) {
 
-            $kosten_id = (int)$kosten_id;
-            $anzahl = (float)($pos['anzahl'] ?? 1);
+		// Basis für Prozentkosten = Material + Strom
+		$basis_produktionskosten = $gesamtbetrag;
 
-            $stmt = $conn->prepare("SELECT kostenart, standard_betrag, einheit FROM betriebskosten WHERE id=?");
-            $stmt->bind_param("i", $kosten_id);
-            $stmt->execute();
-            $row = $stmt->get_result()->fetch_assoc();
+		foreach ($_POST['kosten'] as $kosten_id => $pos) {
 
-            $beschreibung = $row['kostenart'];
-            $preis_pro_einheit = (float)$row['standard_betrag'];
+			if (empty($pos['selected'])) continue;
+
+			$kosten_id = (int)$kosten_id;
+			$anzahl = (float)($pos['anzahl'] ?? 1);
+
+			$stmt = $conn->prepare("SELECT kostenart, standard_betrag, einheit FROM betriebskosten WHERE id=?");
+			$stmt->bind_param("i", $kosten_id);
+			$stmt->execute();
+			$row = $stmt->get_result()->fetch_assoc();
+
+			$beschreibung = $row['kostenart'];
+			$preis_pro_einheit = (float)$row['standard_betrag'];
+
 			switch ($row['einheit']) {
+
 				case 'pauschal':
 					$menge = 1;
-					$gesamt = $preis_pro_einheit * $anzahl; // Multiplikator erlaubt
+					$gesamt = $preis_pro_einheit * $anzahl;
 					break;
 
-				case 'pro_stunde': // pro Stunde Druckzeit
-					$menge = $stunden_gesamt; // gesamte Druckzeit in Stunden
+				case 'pro_stunde':
+					$menge = $stunden_gesamt;
 					$gesamt = $preis_pro_einheit * $menge * $anzahl;
 					break;
 
-				case 'pro_stueck': // pro gedrucktem Teil
+				case 'pro_stueck':
 					$menge = (int)$auftrag['anzahl'];
 					$gesamt = $preis_pro_einheit * $menge * $anzahl;
 					break;
 
-				default: // sonstige Einheit, nur Multiplikator
+				case 'prozent':
+					$menge = 1;
+					$gesamt = ($basis_produktionskosten * $preis_pro_einheit / 100) * $anzahl;
+					break;
+
+				default:
 					$menge = $anzahl;
 					$gesamt = $preis_pro_einheit * $menge;
 					break;
 			}
-            $gesamtbetrag += $gesamt;
 
-            $sql = "INSERT INTO rechnungspositionen 
-                       (rechnung_id, typ, beschreibung, menge, einheit, preis_pro_einheit, gesamt)
-                    VALUES (?, 'betriebskosten', ?, ?, ?, ?, ?)";
-            $stmt2 = $conn->prepare($sql);
-            $stmt2->bind_param("isdsdd", $rechnung_id, $beschreibung, $anzahl, $row['einheit'], $preis_pro_einheit, $gesamt);
-            $stmt2->execute();
-        }
-    }
+			$gesamtbetrag += $gesamt;
+
+			$sql = "INSERT INTO rechnungspositionen 
+					   (rechnung_id, typ, beschreibung, menge, einheit, preis_pro_einheit, gesamt)
+					VALUES (?, 'betriebskosten', ?, ?, ?, ?, ?)";
+			$stmt2 = $conn->prepare($sql);
+			$stmt2->bind_param("isdsdd", $rechnung_id, $beschreibung, $menge, $row['einheit'], $preis_pro_einheit, $gesamt);
+			$stmt2->execute();
+		}
+	}
 
     // Gesamtsumme speichern
     $sql = "UPDATE rechnungen SET gesamtbetrag=? WHERE id=?";

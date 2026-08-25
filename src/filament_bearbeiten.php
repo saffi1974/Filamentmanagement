@@ -1,4 +1,6 @@
 <?php
+$returnUrl = $_GET['return'] ?? $_POST['return'] ?? 'index.php?site=filamente';
+
 // Filament ID aus GET
 $id = (int)$_GET['id'];
 
@@ -63,7 +65,7 @@ if(isset($_POST['submit'])){
 		<i class="fa-solid fa-circle-check"></i>
 		<span>Filament erfolgreich geändert.</span>
 	</div>';
-    header("Location: index.php?site=filamente");
+    header("Location: " . $returnUrl);
     exit;
 }
 ?>
@@ -148,8 +150,9 @@ if(isset($_POST['submit'])){
 
     <div style="display:flex; gap:20px; margin-top:15px;">
       <button type="submit" name="submit" class="btn-submit">Speichern</button>
-      <a href="index.php?site=filamente" class="btn-submit" style="text-decoration:none; display:inline-block;">Zurück</a>
+      <a href="<?= htmlspecialchars($returnUrl) ?>" class="btn-submit" style="text-decoration:none; display:inline-block;">Zurück</a>
     </div>
+	<input type="hidden" name="return" value="<?= htmlspecialchars($returnUrl) ?>">
   </form>
 </section>
 

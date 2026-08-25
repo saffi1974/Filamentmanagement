@@ -10,7 +10,7 @@ body {
     display: flex;
     font-family: Arial, sans-serif;
     min-height: 100vh;
-    background-color: #f4f6f8;
+    background-color: #ffffff; /*#fff4f4; - FÃ¼r TESTUMGEBUNG*/
 	margin=0;
 }
 
@@ -28,7 +28,7 @@ body {
 
 /* Eingeklappten Zustand */
 .sidebar.collapsed {
-    width: 100px; /* etwas breiter für Icons */
+    width: 100px; /* etwas breiter fÃ¼r Icons */
     overflow: visible; /* NICHT hidden, damit Inhalte sichtbar bleiben */
 }
 
@@ -166,8 +166,8 @@ body {
 /* Karten */
 .cards {
     display: flex; /* legt die Elemente nebeneinander */
-    gap: 20px; /* Abstände zwischen den Cards */
-    flex-wrap: wrap; /*wenn nicht genug Platz ist, umbrechen in die nächste Zeile */
+    gap: 20px; /* AbstÃ¤nde zwischen den Cards */
+    flex-wrap: wrap; /*wenn nicht genug Platz ist, umbrechen in die nÃ¤chste Zeile */
 }
 
 .card {
@@ -322,15 +322,18 @@ body {
 }
 
 /* Tabelle im Card-Design */
-.styled-table {
+.styled-table, .statistik-tabelle {
     width: 100%;
 	border-collapse: collapse;
     table-layout: fixed;
 }
 
 .styled-table th,
-.styled-table td {
+.styled-table td,
+.statistik-tabelle th,
+.statistik-tabelle td {
     padding: 10px 15px;
+	font-size: 0.9rem;
 }
 
 .styled-table thead {
@@ -338,7 +341,8 @@ body {
     color: #fff;
 }
 
-.styled-table tbody tr:nth-child(even) {
+.styled-table tbody tr:nth-child(even),
+.statistik-tabelle tbody tr:nth-child(even) {
     background-color: #f4f6f8;
 }
 
@@ -347,18 +351,32 @@ body {
 }
 
 .styled-table th.left,
-.styled-table td.left {
+.styled-table td.left,
+.statistik-tabelle th.left,
+.statistik-tabelle td.left {
   text-align: left;
 }
 
 .styled-table th.center,
-.styled-table td.center {
+.styled-table td.center,
+.statistik-tabelle th.center,
+.statistik-tabelle td.center {
   text-align: center;
 }
 
 .styled-table th.right,
-.styled-table td.right {
+.styled-table td.right,
+.statistik-tabelle th.right,
+.statistik-tabelle td.right {
   text-align: right;
+}
+.statistik-tabelle {
+    font-size: 0.87em;
+    color: #777;
+}
+
+.statistik-tabelle td {
+    font-weight: 500;
 }
 
 /* Aktionen-Spalte immer rechts */
@@ -369,7 +387,7 @@ body {
     white-space: nowrap;
 }
 
-/* Allgemein für Buttons in der Aktionen-Spalte */
+/* Allgemein fÃ¼r Buttons in der Aktionen-Spalte */
 .btn-action {
     display: inline-block;
     padding: 6px 8px;
@@ -378,10 +396,9 @@ body {
     color: #fff;
     text-decoration: none;
     transition: background 0.2s ease;
-
 }
 .btn-action i {
-    color: #fff;   /* weißes Icon */
+    color: #fff;   /* weiÃŸes Icon */
 }
 /* Editieren (Stift) */
 .btn-action.edit {
@@ -391,7 +408,7 @@ body {
     background: #2980b9;
 }
 
-/* Löschen (Papierkorb) */
+/* LÃ¶schen (Papierkorb) */
 .btn-action.delete {
     background: #e74c3c; /* Rot */
 }
@@ -401,8 +418,8 @@ body {
 
 /* Buchen (Box) */
 .btn-action.book {
-    background: #27ae60; /* Grün */
-    color: #fff;         /* Text und Icon weiß */
+    background: #27ae60; /* GrÃ¼n */
+    color: #fff;         /* Text und Icon weiÃŸ */
 }
 .btn-action.book:hover {
     background: #1e8449;
@@ -411,7 +428,7 @@ body {
 /* view (eye) */
 .btn-action.view {
     background: #ffdc00; /* Gelb */
-    color: #fff;         /* Text und Icon weiß */
+    color: #fff;         /* Text und Icon weiÃŸ */
 }
 .btn-action.view:hover {
     background: #ffcd00;
@@ -459,13 +476,13 @@ body {
 	padding:10px 14px;
 	border-radius:8px;
 	box-shadow:0 4px 12px rgba(0,0,0,.15);
-	pointer-events:none; /* ← Klicks gehen durch */
+	pointer-events:none; /* â† Klicks gehen durch */
 	font-size: 0.95rem;
 }
 .toast.error {
 	background:#c0392b;
 }
-/* Wrapper für jede Filament-Zeile */
+/* Wrapper fÃ¼r jede Filament-Zeile */
 .filament-row {
     display: flex;
     gap: 10px;
@@ -535,7 +552,7 @@ body {
 }
 
 .status-fertig {
-    background: #27ae60; /* grün */
+    background: #27ae60; /* grÃ¼n */
 }
 .menu-separator { 
   border: none;
@@ -545,7 +562,7 @@ body {
 #umsatzChart, #auftraegeChart {
   width: 100% !important;
   height: 400px !important;
-  max-width: 100%; /* verhindert Überlaufen */
+  max-width: 100%; /* verhindert Ãœberlaufen */
 }
 
 .zeit-eingabe {
@@ -575,7 +592,7 @@ body {
   text-align: right;
 }
 /* ========================= */
-/* Einheitliches Design für Farb-Dropdown */
+/* Einheitliches Design fÃ¼r Farb-Dropdown */
 /* ========================= */
 .color-dropdown-container {
   position: relative;
@@ -590,7 +607,7 @@ body {
   flex-direction: column;
 }
 
-/* --- sichtbares Feld (ähnlich wie .form-group select) --- */
+/* --- sichtbares Feld (Ã¤hnlich wie .form-group select) --- */
 .color-dropdown .selected {
   background: #f9f9f9;          /* gleiche Hintergrundfarbe wie Inputs */
   border: 1px solid #ccc;       /* gleicher Rahmen */
@@ -602,7 +619,7 @@ body {
   align-items: center;
   justify-content: space-between;
   transition: border-color 0.3s;
-  height: 42px;                 /* gleiche Höhe wie Standard-Select */
+  height: 42px;                 /* gleiche HÃ¶he wie Standard-Select */
   box-sizing: border-box;
 }
 
@@ -634,7 +651,7 @@ body {
   display: block;
 }
 
-/* --- einzelne Listeneinträge --- */
+/* --- einzelne ListeneintrÃ¤ge --- */
 .color-dropdown .dropdown-item {
   padding: 8px 10px;
   display: flex;
@@ -670,4 +687,98 @@ body {
 .form-group textarea,
 .color-dropdown .selected {
   height: 42px;
+}
+.btn-action.info {
+    background: #7f8c8d; /* dezentes Grau */
+    color: #fff;
+    position: relative;
+}
+
+.btn-action.info:hover {
+    background: #95a5a6;
+}
+/* =========================================================
+   Mauszeiger & Interaktive Elemente
+   ========================================================= */
+
+/* Standard-Cursor fÃ¼r interaktive Buttons */
+.btn-action,
+.btn-primary,
+.btn-submit {
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+/* Deaktivierte / Info-Buttons (z. B. Rechnung vorhanden) */
+.btn-action.info {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.btn-action.info:hover {
+  background-color: #95a5a6;
+  transform: none;
+}
+
+/* Hover-Effekt â€“ leichtes Anheben fÃ¼r Feedback */
+.btn-action:hover,
+.btn-primary:hover,
+.btn-submit:hover {
+  transform: scale(1.05);
+}
+
+/* Spezielle Cursorarten nach Aktionstyp */
+.btn-action.delete:hover {
+  cursor: pointer-events; /* signalisiert Vorsicht */
+}
+
+.btn-action.edit:hover {
+  cursor: pointer; /* subtiler Hinweis auf Bearbeitung */
+}
+
+.btn-action.book:hover {
+  cursor: pointer; /* normal klickbar */
+}
+
+.btn-action.view:hover {
+  cursor: zoom-in; /* visuell passend zu "Details anzeigen" */
+}
+.btn-active {
+    background-color: #27ae60;
+    color: #fff;
+}
+.env-banner {
+    background: #e74c3c;
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    padding: 6px;
+    letter-spacing: 1px;
+}
+.detail-table {
+    width: 100%;
+    max-width: 900px;
+    border-collapse: collapse;
+    margin: 5px 0 5px 0;
+    font-size: 0.9rem;
+}
+.detail-table th {
+    width: 220px;
+    text-align: left;
+    background-color: #f4f6f8;
+    color: #2c3e50;
+    padding: 8px 12px;
+}
+.detail-table td {
+    padding: 8px 12px;
+    background-color: #fff;
+}
+.detail-section-title {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    text-align: left;
+	font-size: 1.2rem;
+	font-weight: bold;
+	border-bottom: 2px solid #34495e;
+    padding-bottom: 5px;
 }

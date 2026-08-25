@@ -1,9 +1,8 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+if (isset($_SESSION['success'])) {
+    echo $_SESSION['success'];
+    unset($_SESSION['success']);
 }
-
-
 // Filter aus URL übernehmen
 $filterArt = $_GET['bewegungsart'] ?? '';
 $filterVon = $_GET['von'] ?? '';
@@ -38,9 +37,11 @@ $totalPages = ceil($totalEntries / $limit);
 $sql = "
     SELECT lb.*, 
 		   u.Name AS user_name,
-           CONCAT(h.hr_name, ' | ', f.name_des_filaments, ' | ', m.name) AS filament_name,
+           CONCAT(h.hr_name, ' -- ', f.name_des_filaments, ' -- ', m.name) AS filament_name,
+		   f.artikelnummer_des_herstellers AS artikelnummer,
            p.projektname,
-           a.name AS auftrag_name
+           a.name AS auftrag_name,
+		   s.status
     FROM lagerbewegungen lb
     JOIN filamente f ON lb.filament_id = f.id
     JOIN hersteller h ON f.hersteller_id = h.id
@@ -48,6 +49,7 @@ $sql = "
     LEFT JOIN projekte p ON lb.projekt_id = p.id
     LEFT JOIN auftraege a ON lb.auftrag_id = a.id
 	LEFT JOIN user u ON lb.user_id = u.id
+	LEFT JOIN spulenlager s ON lb.spule_id = s.id	
     $whereSql
     ORDER BY lb.datum DESC
     LIMIT $start, $limit
@@ -94,18 +96,25 @@ $res = $conn->query($sql);
         <table class="styled-table">
             <thead>
                 <tr>
+					<th style="width:5%;">ID</th>
                     <th style="width:12%;">Datum</th>
                     <th style="width:13%;">Bewegung</th>
-                    <th style="width:25%;">Filament</th>
+                    <th style="width:25%;">Filament</th>					
                     <th style="width:7%;">Menge (g)</th>
                     <th style="width:15%;">Bezug</th>
 					<th style="width:7%;">Benutzer</th>
                     <th style="width:20%;">Kommentar</th>
+					<th style="width:5%">Aktion</th>
                 </tr>
             </thead>
             <tbody>
                 <?php while ($row = $res->fetch_assoc()): ?>
                     <tr>
+						<td class="center">
+							<a href="index.php?site=lagerbewegung_details&id=<?= (int)$row['id'] ?>&return=<?= urlencode($_SERVER['REQUEST_URI']) ?>">
+								<strong>#<?= (int)$row['id'] ?></strong>
+							</a>
+						</td>
                         <td><?= htmlspecialchars($row['datum']) ?></td>
                         <td>
                             <?php
@@ -118,7 +127,14 @@ $res = $conn->query($sql);
                             }
                             ?>
                         </td>
-                        <td><?= htmlspecialchars($row['filament_name']) ?></td>
+                        <td><?= htmlspecialchars($row['filament_name']) ?>
+						    <?php if (!empty($row['artikelnummer'])): ?>
+								<div style="font-size:0.85em; font-style:italic; color:#666;">
+								Art.-Nr.: <?= htmlspecialchars($row['artikelnummer']) ?>
+								</div>
+							<?php endif; ?>
+
+						</td>
                         <td class="<?= $row['menge'] < 0 ? 'right error' : 'right success' ?>">
                             <?= $row['menge'] ?>
                         </td>
@@ -133,6 +149,32 @@ $res = $conn->query($sql);
                         </td>
 						<td class="center"><?= htmlspecialchars($row['user_name'] ?? '') ?></td>
                         <td><?= htmlspecialchars($row['kommentar'] ?? '') ?></td>
+						<td class="actions center">
+
+							<?php if (
+								$row['bewegungsart'] === 'wareneingang'
+							): ?>
+
+								<?php if (($row['status'] ?? 'aktiv') !== 'korrigiert'): ?>
+
+									<a href="index.php?site=lagerbewegung_korrigieren&id=<?= (int)$row['id'] ?>&return=<?= urlencode($_SERVER['REQUEST_URI']) ?>"
+									   class="btn-action edit"
+									   title="Wareneingang korrigieren">
+										<i class="fa-solid fa-rotate-left"></i>
+									</a>
+
+								<?php else: ?>
+
+									<span class="btn-action info"
+										  title="Bereits korrigiert">
+										<i class="fa-solid fa-ban"></i>
+									</span>
+
+								<?php endif; ?>
+
+							<?php endif; ?>
+
+						</td>
                     </tr>
                 <?php endwhile; ?>
             </tbody>

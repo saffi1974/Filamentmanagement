@@ -12,6 +12,8 @@ if (!$rechnung_id) {
 $sql = "SELECT r.*, 
                k.firma, k.ansprechpartner, k.strasse, k.plz, k.ort, k.telefon,
                a.name AS auftragsname,
+			   a.druckzeit_seconds,
+               a.anzahl,
                p.projektname
         FROM rechnungen r
         LEFT JOIN kunden k ON r.kunde_id = k.id
@@ -22,6 +24,10 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $rechnung_id);
 $stmt->execute();
 $rechnung = $stmt->get_result()->fetch_assoc();
+
+$druckzeit_seconds_total = (int)($rechnung['druckzeit_seconds'] ?? 0);
+$stunden_gesamt = $druckzeit_seconds_total / 3600;
+$anzahl_stueck = (int)($rechnung['anzahl'] ?? 1);
 
 if (!$rechnung) {
     die("Rechnung nicht gefunden.");
@@ -113,13 +119,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
             $beschreibung = $row['kostenart'];
             $preis_pro_einheit = (float)$row['standard_betrag'];
 
-            if ($row['einheit'] === 'pauschal') {
-                $anzahl = 1;
-                $gesamt = $preis_pro_einheit;
-            } else {
-                $gesamt = $preis_pro_einheit * $anzahl;
-            }
+			switch ($row['einheit']) {
 
+				case 'pauschal':
+					$anzahl = 1;
+					$gesamt = $preis_pro_einheit;
+					break;
+
+				case 'pro_stunde':
+					$gesamt = $preis_pro_einheit * $stunden_gesamt * $anzahl;
+					break;
+
+				case 'pro_stueck':
+					$menge_stueck = (int)($auftrag['anzahl'] ?? 1);
+					$gesamt = $preis_pro_einheit * $menge_stueck * $anzahl;
+					break;
+
+				case 'prozent':
+					// Basis = Material + Strom
+					$sqlSum = "SELECT SUM(gesamt) AS summe 
+							   FROM rechnungspositionen 
+							   WHERE rechnung_id=? 
+							   AND typ IN ('material','stromkosten')";
+					$stmtSum = $conn->prepare($sqlSum);
+					$stmtSum->bind_param("i", $rechnung_id);
+					$stmtSum->execute();
+					$sumRow = $stmtSum->get_result()->fetch_assoc();
+					$basis = (float)($sumRow['summe'] ?? 0);
+
+					$gesamt = ($basis * $preis_pro_einheit / 100) * $anzahl;
+					break;
+
+				default:
+					$gesamt = $preis_pro_einheit * $anzahl;
+					break;
+			}
             $sql = "INSERT INTO rechnungspositionen 
                        (rechnung_id, typ, beschreibung, menge, einheit, preis_pro_einheit, gesamt)
                     VALUES (?, 'betriebskosten', ?, ?, ?, ?, ?)";
@@ -206,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save'])) {
                     <tr>
                         <td colspan="4"><strong>Gesamtbetrag</strong></td>
                         <td class="right"><strong><?= number_format($rechnung['gesamtbetrag'], 2, ',', '.') ?> €</strong></td>
-						</td> </td>
+						<td> </td>
                     </tr>
                 </tfoot>
             </table>

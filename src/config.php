@@ -54,5 +54,6 @@ $dateien['betriebskosten'] = "betriebskosten.php";
 $dateien['firmendaten'] = "firmendaten.php";
 $dateien['kosten_vorschlag'] = "kosten_vorschlag.php";
 $dateien['lager_suche'] = "lager_suche.php";
-
+$dateien['lagerbewegung_korrigieren'] = "lagerbewegungen_korrigieren.php";
+$dateien['lagerbewegung_details'] = "lagerbewegung_details.php";
 ?>

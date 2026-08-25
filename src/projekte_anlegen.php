@@ -6,10 +6,18 @@ require_role(['superuser','admin']);
 
 // Filamente laden (Dropdown)
 $filamente_res = $conn->query("
-    SELECT f.id, f.name_des_filaments, h.hr_name, m.name AS material
+    SELECT 
+        f.id, 
+        f.name_des_filaments, 
+        h.hr_name, 
+        m.name AS material,
+        SUM(s.verbleibendes_filament) AS bestand
     FROM filamente f
+    JOIN spulenlager s ON s.filament_id = f.id
     LEFT JOIN hersteller h ON f.hersteller_id = h.id
     LEFT JOIN materialien m ON f.material = m.id
+    GROUP BY f.id
+    HAVING bestand > 0
     ORDER BY h.hr_name, f.name_des_filaments
 ");
 $filamente = $filamente_res->fetch_all(MYSQLI_ASSOC);
@@ -105,8 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit'])) {
                         <option value="">Bitte wählen</option>
                         <?php foreach($filamente as $f): ?>
                         <option value="<?= $f['id'] ?>">
-                            <?= htmlspecialchars($f['hr_name'] . " - " . $f['name_des_filaments'] . " (" . $f['material'] . ")") ?>
-                        </option>
+							<?= htmlspecialchars($f['hr_name'] . " - " . $f['name_des_filaments'] . " (" . $f['material'] . ")  -  " . number_format($f['bestand'],0,',','.') . " g verfügbar") ?>
+						</option>
                         <?php endforeach; ?>
                     </select>
                 </div>

@@ -14,18 +14,26 @@ if($page < 1) $page = 1;
 // Startwert für LIMIT
 $start = ($page - 1) * $limit;
 
+$filter = "s.verbleibendes_filament > 0";
+
+
 // Anzahl Einträge
-$totalRes = $conn->query("SELECT COUNT(*) as total FROM spulenlager");
+$totalRes = $conn->query("
+    SELECT COUNT(*) as total 
+    FROM spulenlager s
+    WHERE $filter
+");
 $totalRow = $totalRes->fetch_assoc();
 $totalEntries = $totalRow['total'];
 $totalPages = ceil($totalEntries / $limit);
 
 // Abfrage mit JOIN
-$sql = "SELECT s.*, f.name_des_filaments, f.preis AS filament_preis, m.name AS material, h.hr_name
+$sql = "SELECT s.*, f.name_des_filaments, f.preis AS filament_preis, f.artikelnummer_des_herstellers, m.name AS material, h.hr_name
         FROM spulenlager s
         LEFT JOIN filamente f ON s.filament_id = f.id
         LEFT JOIN materialien m ON f.material = m.id
         LEFT JOIN hersteller h ON f.hersteller_id = h.id
+		WHERE $filter
         ORDER BY s.id ASC
         LIMIT $start, $limit";
 $res = $conn->query($sql);
@@ -59,14 +67,19 @@ $res = $conn->query($sql);
 				<td class="left"><?= htmlspecialchars($row['id'] ?? '') ?></td>
 				<td class="left">
 					<?= htmlspecialchars($row['hr_name'] ?? '') ?> - <?= htmlspecialchars($row['name_des_filaments'] ?? '') ?>
+					<?php if (!empty($row['artikelnummer_des_herstellers'])): ?>
+						<div style="font-size:0.85em; font-style:italic; color:#666;">
+							Art.-Nr.: <?= htmlspecialchars($row['artikelnummer_des_herstellers'] ?? '') ?>
+						</div>
+					<?php endif; ?>
 				</td>
 				<td class="left"><?= htmlspecialchars($row['material'] ?? '') ?></td>
 				<td class="right"><?= number_format($row['verbleibendes_filament'] ?? 0, 2, ',', '.') ?> g</td>
 				<td class="right"><?= number_format($row['verbrauchtes_filament'] ?? 0, 2, ',', '.') ?> g</td>
 				<td class="right"><?= number_format($row['preis'] ?? 0, 2, ',', '.') ?> €</td>
 				<td class="center"><?= htmlspecialchars($row['lagerort'] ?? '') ?></td>
-				<td class="center"><?php echo date("d.m.Y H:i:s", strtotime($row['erstmals_verwendet'])); ?></td>
-				<td class="center"><?php echo date("d.m.Y H:i:s", strtotime($row['letzte_verwendung'])); ?></td>
+				<td class="center"><div style="font-size:0.85em; font-style:italic; color:#666;"><?php echo date("d.m.Y H:i:s", strtotime($row['erstmals_verwendet'])); ?></div></td>
+				<td class="center"><div style="font-size:0.85em; font-style:italic; color:#666;"><?php echo date("d.m.Y H:i:s", strtotime($row['letzte_verwendung'])); ?></div></td>
 				<td class="right">
 					<?= number_format((($row['verbleibendes_filament'] ?? 0) / 1000) * ($row['preis'] ?? 0), 2, ',', '.') ?> €
 				</td>

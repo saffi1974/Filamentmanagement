@@ -82,7 +82,7 @@ $res = $conn->query("
                     <td class="center"><?= $p['filament_count'] ?></td>
                     <td class="center"><?= $p['gesamt_menge'] ?> g</td>
                     <td class="center"><?= $druckzeit_str ?></td>
-                    <td class="center"><?= htmlspecialchars($p['datum']) ?></td>
+                    <td class="center"><div style="font-size:0.85em; font-style:italic; color:#666;"><?php echo date("d.m.Y", strtotime($p['datum'])); ?></div></td>
                     <td class="actions center">
 					<?php if (isset($_SESSION['rolle']) && in_array($_SESSION['rolle'], ['superuser','admin', 'user'])): ?>
                         

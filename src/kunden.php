@@ -51,7 +51,7 @@ $res = $conn->query("
                     <th class="left" style="width:10%;">Telefon</th>
                     <th class="left" style="width:20%;">Adresse</th>
                     <th class="left" style="width:10%;">Versandart</th>
-                    <th class="left" style="width:10%;">Angelegt am</th>
+                    <th class="left" style="width:11%;">Angelegt am</th>
                     <th class="center" style="width:15%;">Aktionen</th>
                 </tr>
             </thead>
@@ -67,7 +67,7 @@ $res = $conn->query("
                         <?= htmlspecialchars($k['plz']) ?> <?= htmlspecialchars($k['ort']) ?>
                     </td>
                     <td><?= $k['versandart'] ?></td>
-                    <td><?= $k['angelegt_am'] ?></td>
+                    <td><div style="font-size:0.85em; font-style:italic; color:#666;"><?php echo date("d.m.Y - H:m", strtotime($k['angelegt_am'])); ?></div></td>
                     <td class="actions center">
 					<?php if (isset($_SESSION['rolle']) && in_array($_SESSION['rolle'], ['superuser','admin', 'user'])): ?>
                         <a href="index.php?site=kunden_bearbeiten&id=<?= $k['id'] ?>" class="btn-action edit" title="Bearbeiten">

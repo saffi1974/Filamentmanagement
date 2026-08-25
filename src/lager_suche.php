@@ -10,6 +10,7 @@ $farbe = $_GET['farbe'] ?? '';
 $hersteller_id = $_GET['hersteller_id'] ?? '';
 $material_id = $_GET['material_id'] ?? '';
 $name = trim($_GET['name'] ?? '');
+$zeige_leere = isset($_GET['leere']) && $_GET['leere'] == 1;
 
 // Hersteller & Materialien laden
 $herstellerRes = $conn->query("SELECT id, hr_name FROM hersteller ORDER BY hr_name");
@@ -60,12 +61,34 @@ $hauptfarben = [
     'Braun' => '#A52A2A'
 ];
 
+$where = [];
+
+if (!$zeige_leere) {
+    $where[] = "s.verbleibendes_filament > 0";
+}
+
+if ($hersteller_id) {
+    $where[] = "h.id = " . (int)$hersteller_id;
+}
+
+if ($material_id) {
+    $where[] = "m.id = " . (int)$material_id;
+}
+
+if ($name) {
+    $where[] = "f.name_des_filaments LIKE '%" . $conn->real_escape_string($name) . "%'";
+}
+
+$whereSql = count($where) ? "WHERE " . implode(" AND ", $where) : "";
+
+
 // --- Haupt-SQL ---
 $sql = "
     SELECT 
         f.id, 
         f.name_des_filaments, 
         f.farben,
+        f.artikelnummer_des_herstellers,
         h.hr_name, 
         m.name AS material_name,
         SUM(s.verbleibendes_filament) AS menge,
@@ -75,18 +98,19 @@ $sql = "
     JOIN filamente f ON s.filament_id = f.id
     JOIN hersteller h ON f.hersteller_id = h.id
     JOIN materialien m ON f.material = m.id
-	LEFT JOIN (
-		SELECT filament_id, MAX(datum) AS letzte_verwendung
-		FROM lagerbewegungen
-		GROUP BY filament_id
-	) lb ON lb.filament_id = f.id
-    WHERE 1=1
+    LEFT JOIN (
+        SELECT filament_id, MAX(datum) AS letzte_verwendung
+        FROM lagerbewegungen
+        GROUP BY filament_id
+    ) lb ON lb.filament_id = f.id
+    $whereSql
 ";
 
 // --- Farbfilter ---
 if ($farbe && strtolower($farbe) !== 'alle') {
     $rgbRange = getColorRange($farbe);
     $ids = [];
+
     $filamentRes = $conn->query("SELECT id, farben FROM filamente");
     while ($frow = $filamentRes->fetch_assoc()) {
         $farben = json_decode($frow['farben'], true);
@@ -104,9 +128,15 @@ if ($farbe && strtolower($farbe) !== 'alle') {
             }
         }
     }
-    if ($ids) $sql .= " AND f.id IN (" . implode(',', $ids) . ")";
-    else $sql .= " AND 0";
+
+    if ($ids) {
+        $sql .= count($where) ? " AND" : " WHERE";
+        $sql .= " f.id IN (" . implode(',', $ids) . ")";
+    } else {
+        $sql .= " AND 0";
+    }
 }
+
 
 if ($hersteller_id) $sql .= " AND h.id = " . (int)$hersteller_id;
 if ($material_id) $sql .= " AND m.id = " . (int)$material_id;
@@ -115,14 +145,21 @@ if ($name) $sql .= " AND f.name_des_filaments LIKE '%" . $conn->real_escape_stri
 $sql .= " GROUP BY f.id ORDER BY lagerwert DESC";
 $res = $conn->query($sql);
 
+
 // --- Farblegende vorbereiten ---
 $farblegende = [];
-$filamentRes = $conn->query("
-	SELECT DISTINCT f.id, f.farben
-	FROM filamente f
-	JOIN spulenlager s ON s.filament_id = f.id
-	WHERE s.verbleibendes_filament > 0
-");
+$farbSql = "
+    SELECT DISTINCT f.id, f.farben
+    FROM spulenlager s
+    JOIN filamente f ON s.filament_id = f.id
+    JOIN hersteller h ON f.hersteller_id = h.id
+    JOIN materialien m ON f.material = m.id
+    $whereSql
+";
+
+$filamentRes = $conn->query($farbSql);
+
+
 
 while ($frow = $filamentRes->fetch_assoc()) {
     $farben = json_decode($frow['farben'], true);
@@ -237,6 +274,7 @@ ksort($farblegende);
         <tr>
           <th>Filament</th>
           <th>Hersteller</th>
+		  <th>Artiklennummer</th>
           <th>Material</th>
           <th class="right">Menge (g)</th>
           <th class="right">Lagerwert (€)</th>
@@ -259,6 +297,7 @@ ksort($farblegende);
                 ?>
               </td>
               <td><?= htmlspecialchars($row['hr_name']) ?></td>
+			  <td><?= htmlspecialchars($row['artikelnummer_des_herstellers'] ?? '-') ?></td>
               <td><?= htmlspecialchars($row['material_name']) ?></td>
               <td class="right"><?= number_format($row['menge'], 0, ',', '.') ?></td>
               <td class="right"><?= number_format($row['lagerwert'], 2, ',', '.') ?></td>

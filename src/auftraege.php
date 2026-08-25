@@ -36,11 +36,13 @@ $sql = "
 		   p.projektname,
            COUNT(af.id) AS filament_count,
            COALESCE(SUM(af.menge_geplant), 0) AS gesamt_geplant,
-           COALESCE(SUM(af.menge_gebucht), 0) AS gesamt_gebucht
+           COALESCE(SUM(af.menge_gebucht), 0) AS gesamt_gebucht,
+		   COUNT(r.id) AS rechnung_vorhanden
     FROM auftraege a
     LEFT JOIN kunden k ON a.kunde_id = k.id
 	LEFT JOIN projekte p ON a.projekt_id = p.id
     LEFT JOIN auftrag_filamente af ON a.id = af.auftrag_id
+	LEFT JOIN rechnungen r ON a.id = r.auftrag_id
 ";
 if ($statusFilter) {
     $sql .= " WHERE a.status = '".$conn->real_escape_string($statusFilter)."'";
@@ -122,9 +124,10 @@ $res = $conn->query($sql);
 					</td>
                     <td class="right"><?= $a['gesamt_geplant'] ?> g</td>
                     <td class="right"><?= $a['gesamt_gebucht'] ?> g</td>
-                    <td class="center"><?= htmlspecialchars($a['datum'] ?? '') ?></td>
+                    <td class="center"<div style="font-size:0.85em; font-style:italic; color:#666;"><?php echo date("d.m.Y", strtotime($a['datum'])); ?></div></td>
                     <td class="actions center">
 						<?php if (isset($_SESSION['rolle']) && in_array($_SESSION['rolle'], ['superuser','admin', 'user'])): ?>
+
 							<a href="index.php?site=auftraege_bearbeiten&id=<?= $a['id'] ?>" class="btn-action edit" title="Bearbeiten">
 								<i class="fa-solid fa-pen-to-square"></i>
 							</a>
@@ -139,10 +142,14 @@ $res = $conn->query($sql);
 								<a href="index.php?site=auftraege_buchen&id=<?= $a['id'] ?>" class="btn-action book" title="Buchen">
 									<i class="fa-solid fa-box-open"></i>
 								</a>
-							<?php else: ?>
+							<?php elseif ($a['rechnung_vorhanden'] == 0): ?>
 									<a href="index.php?site=rechnungen_erstellen&id=<?= $a['id'] ?>" class="btn-action book" title="Rechnung erstellen">
 										<i class="fa-solid fa-file-invoice-dollar"></i>
 									</a>
+							<?php else: ?>
+									<span class="btn-action info" title="Rechnung vorhanden">
+										<i class="fa-solid fa-file-invoice"></i>
+									</span>
 							<?php endif; ?>
 						
 						<?php endif; ?>

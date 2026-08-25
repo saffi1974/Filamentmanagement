@@ -30,7 +30,7 @@ $res = $conn->query("SELECT * FROM hersteller ORDER BY id");
                 <td class="left"><?php echo htmlspecialchars($h['hr_name']); ?></td>
 				<td class="right" style="width:15%;padding-right:5%;"><?php echo htmlspecialchars($h['hr_leerspule']); ?> g</td>
 				<td class="left" style="width: 25%;"><?php echo htmlspecialchars($h['hr_kommentar']); ?></td>
-				<td class="left"><?php echo date("d.m.Y H:i:s", strtotime($h['hr_eingetragen'])); ?></td>
+				<td class="left"><div style="font-size:0.85em; font-style:italic; color:#666;"><?php echo date("d.m.Y - H:m", strtotime($h['hr_eingetragen'])); ?></div></td>
 				<td class="actions center">
 				<?php if (isset($_SESSION['rolle']) && in_array($_SESSION['rolle'], ['superuser','admin', 'user'])): ?>
 					<a href="index.php?site=hersteller_bearbeiten&id=<?php echo $h['id']; ?>" class="btn-action edit" title="Bearbeiten">

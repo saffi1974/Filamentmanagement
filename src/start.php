@@ -8,6 +8,27 @@ require_role(['superuser','admin','user','readonly']);
 // Kennzahlen aus DB
 
 $offene_auftraege = $conn->query("SELECT COUNT(*) AS c FROM auftraege WHERE status='offen'")->fetch_assoc()['c'];
+$offene_rechnungen = $conn->query("SELECT COUNT(*) AS c FROM rechnungen WHERE status = 'offen'")->fetch_assoc()['c'] ?? 0;
+$offene_rechnungen_betrag = $conn->query("SELECT SUM(gesamtbetrag) AS summe FROM rechnungen WHERE status = 'offen'")->fetch_assoc()['summe'] ?? 0;
+
+$monate = [
+    1 => 'Januar',
+    2 => 'Februar',
+    3 => 'März',
+    4 => 'April',
+    5 => 'Mai',
+    6 => 'Juni',
+    7 => 'Juli',
+    8 => 'August',
+    9 => 'September',
+    10 => 'Oktober',
+    11 => 'November',
+    12 => 'Dezember'
+];
+
+$aktueller_monat = $monate[(int)date('n')];
+$aktuelles_jahr = date('Y');
+
 $res = $conn->query("SELECT COUNT(*) AS total FROM auftraege");
 $auftraegeCount = $res->fetch_assoc()['total'] ?? 0;
 $fertige_auftraege = $conn->query("SELECT COUNT(*) AS c FROM auftraege WHERE status='fertig'")->fetch_assoc()['c'];
@@ -20,7 +41,11 @@ $anzahl_drucker = $conn->query("SELECT COUNT(*) AS c FROM drucker")->fetch_assoc
 
 $anzahl_benutzer = $conn->query("SELECT COUNT(*) AS c FROM user")->fetch_assoc()['c'];
 
-$anzahl_spulen = $conn->query("SELECT COUNT(*) AS c FROM spulenlager")->fetch_assoc()['c'];
+$anzahl_spulen = $conn->query("SELECT COUNT(*) AS c FROM spulenlager WHERE verbleibendes_filament > 0 AND
+(status = 'aktiv' OR status IS NULL) ")->fetch_assoc()['c'];
+
+$anzahl_projekte = $conn->query("SELECT COUNT(*) AS c FROM projekte")->fetch_assoc()['c'] ?? 0;
+	
 $verbrauch_filament = $conn->query("SELECT SUM(verbrauchtes_filament) AS summe FROM spulenlager")->fetch_assoc()['summe'] ?? 0;
 
 $anzahl_filament = $conn->query("SELECT COUNT(*) AS c FROM filamente")->fetch_assoc()['c'];
@@ -28,6 +53,16 @@ $anzahl_filament = $conn->query("SELECT COUNT(*) AS c FROM filamente")->fetch_as
 $umsatz_gesamt = $conn->query("SELECT SUM(gesamtbetrag) AS summe FROM rechnungen WHERE status='bezahlt'")->fetch_assoc() ['summe'] ?? 0;
 $umsatz_jahr = $conn->query("SELECT SUM(gesamtbetrag) AS summe FROM rechnungen WHERE status='bezahlt' AND YEAR(datum)=YEAR(CURDATE())")->fetch_assoc() ['summe'] ?? 0;
 $umsatz_monat = $conn->query("SELECT SUM(gesamtbetrag) AS summe FROM rechnungen WHERE status='bezahlt' AND YEAR(datum)=YEAR(CURDATE()) AND MONTH(datum)=MONTH(CURDATE())")->fetch_assoc() ['summe'] ?? 0;
+
+$filament_gekauft = $conn->query("SELECT SUM(preis) AS summe FROM spulenlager WHERE status <> 'korrigiert' OR status IS NULL
+")->fetch_assoc()['summe'] ?? 0;
+
+$filament_verbraucht_wert = $conn->query("SELECT SUM((preis / 1000) * verbrauchtes_filament) AS summe FROM spulenlager
+WHERE status <> 'korrigiert' OR status IS NULL ")->fetch_assoc()['summe'] ?? 0;
+
+$filament_lagerwert = $conn->query("SELECT SUM((preis / 1000) * verbleibendes_filament) AS summe FROM spulenlager
+WHERE status = 'aktiv' OR status IS NULL")->fetch_assoc()['summe'] ?? 0;
+
 
 // Verbrauch nach Hersteller
 $verbrauch_hersteller = [];
@@ -122,8 +157,8 @@ while ($row = $res->fetch_assoc()) {
   <div class="cards">
 
     <div class="card">
-		<h3><i class="fa-solid fa-record-vinyl"></i> Spulenlager</h3>
-		<table class="styled-table">
+		<h3><i class="fa-solid fa-record-vinyl"></i> Lager</h3>
+		<table class="statistik-tabelle">
 			<tbody>
 				<tr>
 					<td style="width:50%;">Spulen im Lager:</td><td class="right"><?= $anzahl_spulen ?></td>
@@ -135,13 +170,12 @@ while ($row = $res->fetch_assoc()) {
 					<td>Hersteller:</td><td class="right"><?= $anzahl_hersteller ?></td>			
 				</tr>
 				<tr>
-					<td>Filamentverbrauch:</td><td class="right"><?= number_format($verbrauch_filament / 1000, 2, ',', '.') ?> kg</td>			
+					<td>Lagerwert:</td>
+					<td class="right"><?= number_format($filament_lagerwert,2,',','.') ?> €</td>
 				</tr>
 				<tr>
-					<td>Top-Hersteller:</td><td class="right"><?= htmlspecialchars($top_hersteller['hersteller'] ?? '–') ?> (<?= number_format(($top_hersteller['gesamt'] ?? 0) / 1000, 2, ',', '.') ?> kg)</td>			
-				</tr>
-				<tr>
-					<td>Top-Material:</td><td class="right"><?= htmlspecialchars($top_material['materialname'] ?? '–') ?> (<?= number_format(($top_material['gesamt'] ?? 0) / 1000, 2, ',', '.') ?> kg)</td>			
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
 				</tr>
 			</tbody>
 			<tfoot>
@@ -156,24 +190,35 @@ while ($row = $res->fetch_assoc()) {
 	</div>	
 
     <div class="card">
-		<h3><i class="fa-solid fa-user"></i> Stammdaten</h3>
-		<table class="styled-table">
+		<h3><i class="fa-solid fa-layer-group"></i> Filament-Statistik</h3>
+		<table class="statistik-tabelle">
 			<tbody>
 				<tr>
-					<td style="width:50%;">Kunden:</td><td class="right"><?= $anzahl_kunden ?></td>
+					<td style="width:54%;">Investiert:</td>
+					<td class="right"><?= number_format($filament_gekauft,2,',','.') ?> €</td>
 				</tr>
 				<tr>
-					<td>Drucker:</td><td class="right"><?= $anzahl_drucker ?></td>
+					<td>Verbraucht:</td>
+					<td class="right"><?= number_format($filament_verbraucht_wert,2,',','.') ?> €</td>			
 				</tr>
 				<tr>
-					<td>Benutzer:</td><td class="right"><?= $anzahl_benutzer ?></td>			
+					<td>Verbrauch in kg:</td>
+					<td class="right"><?= number_format($verbrauch_filament / 1000,2,',','.') ?> kg</td>
+				</tr>
+				<tr>
+					<td>Top-Hersteller:</td>
+					<td class="right"><?= htmlspecialchars($top_hersteller['hersteller'] ?? '-') ?></td>
+				</tr>
+				<tr>
+					<td>Top-Material:</td>
+					<td class="right"><?= htmlspecialchars($top_material['materialname'] ?? '-') ?></td>
 				</tr>
 			</tbody>
 			<tfoot>
 				<tr>
 					<td colspan="2" class="card-actions">
 						<a href="index.php?site=spulen" class="btn-action edit"><i class="fa-solid fa-list"></i></a>
-						<a href="index.php?site=auftraege_anlegen" class="btn-action delete"><i class="fa-solid fa-plus"></i></a>
+						<a href="index.php?site=buchungen" class="btn-action delete"><i class="fa-solid fa-plus"></i></a>
 					</td>
 				</tr>
 			</tfoot>
@@ -182,16 +227,27 @@ while ($row = $res->fetch_assoc()) {
 
     <div class="card">
 		<h3><i class="fa-solid fa-print"></i> Druckaufträge</h3>
-		<table class="styled-table">
+		<table class="statistik-tabelle">
 			<tbody>
 				<tr>
-					<td style="width:50%;">Aufträge gesamt:</td><td class="right"><?= $auftraegeCount ?></td>
+					<td>Projekte:</td>
+					<td class="right"><?= $anzahl_projekte ?></td>
 				</tr>
 				<tr>
-					<td>Offene Aufträge:</td><td class="right"><?= $offene_auftraege ?></td>
+					<td style="width:44%;">Aufträge gesamt:</td>
+					<td class="right"><?= $auftraegeCount ?></td>
 				</tr>
 				<tr>
-					<td>Fertige Aufträge:</td><td class="right"><?= $fertige_auftraege ?></td>			
+					<td>Offen:</td>
+					<td class="right"><?= $offene_auftraege ?></td>
+				</tr>
+				<tr>
+					<td>Fertig:</td>
+					<td class="right"><?= $fertige_auftraege ?></td>
+				</tr>
+				<tr>
+					<td>&nbsp;</td>
+					<td>&nbsp;</td>
 				</tr>
 			</tbody>
 			<tfoot>
@@ -207,22 +263,33 @@ while ($row = $res->fetch_assoc()) {
 
 	<div class="card">
 		<h3><i class="fa-solid fa-sack-dollar"></i> Business</h3>
-		<table class="styled-table">
+		<table class="statistik-tabelle">
 			<tbody>
 				<tr>
-					<td style="width:50%;">Umsatz diesen Monat:</td><td class="right"><?= number_format($umsatz_monat, 2, ',', '.') ?> €</td>
+					<td style="width:60%;"><?= $aktueller_monat ?>:</td>
+					<td class="right"><?= number_format($umsatz_monat,2,',','.') ?> €</td>
 				</tr>
 				<tr>
-					<td>Umsatz dieses Jahr:</td><td class="right"><?= number_format($umsatz_jahr, 2, ',', '.') ?> €</td>
+					<td><?= $aktuelles_jahr ?>:</td>
+					<td class="right"><?= number_format($umsatz_jahr,2,',','.') ?> €</td>
 				</tr>
 				<tr>
-					<td>Umsatz insgesamt:</td><td class="right"><?= number_format($umsatz_gesamt, 2, ',', '.') ?> €</td>
+					<td>offene Rechnungen:</td>
+					<td class="right"><?= $offene_rechnungen ?></td>
+				</tr>
+				<tr>
+					<td>offener Betrag:</td>
+					<td class="right"><?= number_format($offene_rechnungen_betrag,2,',','.') ?> €</td>
+				</tr>
+				<tr>
+					<td>Gesamt:</td>
+					<td class="right"><?= number_format($umsatz_gesamt,2,',','.') ?> €</td>
 				</tr>
 			</tbody>
 			<tfoot>
 				<tr>
 					<td colspan="2" class="card-actions">
-						<a href="index.php?site=spulen" class="btn-action edit"><i class="fa-solid fa-list"></i></a>
+						<a href="index.php?site=rechnungen" class="btn-action edit"><i class="fa-solid fa-list"></i></a>
 						<a href="index.php?site=auftraege_anlegen" class="btn-action delete"><i class="fa-solid fa-plus"></i></a>
 					</td>
 				</tr>

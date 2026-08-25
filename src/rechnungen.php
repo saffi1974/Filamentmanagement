@@ -68,7 +68,7 @@ $res = $conn->query($sql);
                     <td><?= htmlspecialchars($r['firma'] ?: $r['ansprechpartner']) ?></td>
                     <td><?= htmlspecialchars($r['auftragsname'] ?? '-') ?></td>
                     <td><?= htmlspecialchars($r['projektname'] ?? '-') ?></td>
-                    <td><?= htmlspecialchars($r['datum']) ?></td>
+                    <td><div style="font-size:0.85em; font-style:italic; color:#666;"><?php echo date("d.m.Y", strtotime($r['datum'])); ?></div></td>
 
                     <!-- Gesamtbetrag -->
                     <td class="right"><?= number_format($r['gesamtbetrag'], 2, ',', '.') ?> €</td>

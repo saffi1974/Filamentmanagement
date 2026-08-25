@@ -130,6 +130,7 @@ if (isset($_GET['edit'])) {
                     <option value="pauschal" <?= $edit_item['einheit']=='pauschal'?'selected':'' ?>>Pauschal</option>
                     <option value="pro_stunde" <?= $edit_item['einheit']=='pro_stunde'?'selected':'' ?>>Pro Stunde</option>
                     <option value="pro_stueck" <?= $edit_item['einheit']=='pro_stueck'?'selected':'' ?>>Pro Stück</option>
+					<option value="prozent" <?= $edit_item['einheit']=='prozent'?'selected':'' ?>>Prozent</option>
                 </select>
             </div>
 
@@ -161,6 +162,7 @@ if (isset($_GET['edit'])) {
                     <option value="pauschal">Pauschal</option>
                     <option value="pro_stunde">Pro Stunde</option>
                     <option value="pro_stueck">Pro Stück</option>
+					<option value="prozent">Prozent</option>
                 </select>
             </div>
 

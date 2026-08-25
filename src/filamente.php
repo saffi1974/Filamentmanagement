@@ -13,6 +13,23 @@ if($page < 1) $page = 1;
 // Startwert für LIMIT
 $start = ($page - 1) * $limit;
 
+$sort = $_GET['sort'] ?? 'id';
+
+switch ($sort) {
+    case 'hersteller':
+        $orderBy = "h.hr_name ASC, f.name_des_filaments ASC";
+        break;
+
+    case 'name':
+        $orderBy = "f.name_des_filaments ASC, h.hr_name ASC";
+        break;
+
+    case 'id':
+    default:
+        $orderBy = "f.id ASC";
+        break;
+}
+
 // Gesamteinträge zählen
 $totalRes = $conn->query("SELECT COUNT(*) as total FROM filamente");
 $totalRow = $totalRes->fetch_assoc();
@@ -25,7 +42,7 @@ $res = $conn->query("
     FROM filamente f
     LEFT JOIN hersteller h ON f.hersteller_id = h.id
     LEFT JOIN materialien m ON f.material = m.id
-    ORDER BY f.id
+    ORDER BY $orderBy
     LIMIT $start, $limit
 ");
 ?>
@@ -35,8 +52,25 @@ $res = $conn->query("
         <h2>Filamente</h2>
         <a href="index.php?site=filament_anlegen" class="btn-primary">+ Neues Filament</a>
     </div>
+	
+<div class="card-actions" style="margin-bottom:15px;">
+    <a href="?site=filamente&sort=hersteller"
+       class="<?= $sort == 'hersteller' ? 'btn-primary btn-active' : 'btn-primary' ?>">
+       Hersteller
+    </a>
 
-    <div class="table-wrapper">
+    <a href="?site=filamente&sort=name"
+       class="<?= $sort == 'name' ? 'btn-primary btn-active' : 'btn-primary' ?>">
+       Filamentname
+    </a>
+
+    <a href="?site=filamente&sort=id"
+       class="<?= $sort == 'id' ? 'btn-primary btn-active' : 'btn-primary' ?>">
+       Standard
+    </a>
+</div>
+    
+	<div class="table-wrapper">
         <table class="styled-table">
             <thead>
                 <tr>
@@ -79,7 +113,7 @@ $res = $conn->query("
                     <td class="left"><?= htmlspecialchars($h['kommentar']) ?></td>
                     <td class="actions center">
 					<?php if (isset($_SESSION['rolle']) && in_array($_SESSION['rolle'], ['superuser','admin', 'user'])): ?>
-                        <a href="index.php?site=filament_bearbeiten&id=<?= $h['id'] ?>" class="btn-action edit" title="Bearbeiten">
+                        <a href="index.php?site=filament_bearbeiten&id=<?= $h['id'] ?>&return=<?= urlencode($_SERVER['REQUEST_URI']) ?>" class="btn-action edit" title="Bearbeiten">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </a>
                         <?php if (isset($_SESSION['rolle']) && in_array($_SESSION['rolle'], ['superuser','admin'])): ?>
@@ -98,19 +132,19 @@ $res = $conn->query("
     <!-- Pagination -->
     <div class="pagination">
         <?php if($page > 1): ?>
-            <a href="?site=filamente&page=<?= $page - 1 ?>">&laquo; Zurück</a>
+            <a href="?site=filamente&page=<?= $page - 1 ?>&sort=<?= urlencode($sort) ?>">&laquo; Zurück</a>
         <?php endif; ?>
 
         <?php for($i=1; $i<=$totalPages; $i++): ?>
             <?php if($i == $page): ?>
                 <strong><?= $i ?></strong>
             <?php else: ?>
-                <a href="?site=filamente&page=<?= $i ?>"><?= $i ?></a>
+                <a href="?site=filamente&page=<?= $i ?>&sort=<?= urlencode($sort) ?>"><?= $i ?></a>
             <?php endif; ?>
         <?php endfor; ?>
 
         <?php if($page < $totalPages): ?>
-            <a href="?site=filamente&page=<?= $page + 1 ?>">Weiter &raquo;</a>
+            <a href="?site=filamente&page=<?= $page + 1 ?>&sort=<?= urlencode($sort) ?>">Weiter &raquo;</a>
         <?php endif; ?>
     </div>
 </section>
