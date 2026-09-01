@@ -127,13 +127,29 @@ $res = $conn->query($sql);
                             }
                             ?>
                         </td>
-                        <td><?= htmlspecialchars($row['filament_name']) ?>
-						    <?php if (!empty($row['artikelnummer'])): ?>
-								<div style="font-size:0.85em; font-style:italic; color:#666;">
-								Art.-Nr.: <?= htmlspecialchars($row['artikelnummer']) ?>
-								</div>
+						<td>
+							<?php if (
+								$row['bewegungsart'] === 'korrektur'
+								&& (float)$row['menge'] < 0
+								&& !empty($row['spule_id'])
+							): ?>
+
+								<a href="index.php?site=spulen&spule_id=<?= (int)$row['spule_id'] ?>"
+								   title="Spule im Lager anzeigen">
+									<?= htmlspecialchars($row['filament_name']) ?>
+								</a>
+
+							<?php else: ?>
+
+								<?= htmlspecialchars($row['filament_name']) ?>
+
 							<?php endif; ?>
 
+							<?php if (!empty($row['artikelnummer'])): ?>
+								<div style="font-size:0.85em; font-style:italic; color:#666;">
+									Art.-Nr.: <?= htmlspecialchars($row['artikelnummer']) ?>
+								</div>
+							<?php endif; ?>
 						</td>
                         <td class="<?= $row['menge'] < 0 ? 'right error' : 'right success' ?>">
                             <?= $row['menge'] ?>

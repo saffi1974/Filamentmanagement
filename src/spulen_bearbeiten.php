@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <i class="fa-solid fa-circle-info"></i>
             <span>Spule erfolgreich geändert! '. $bewegungsart . '</span>
         </div>';
-    header("Location: index.php?site=spulen");
+    header("Location: index.php?site=lagerbewegungen");
     exit;
 	
     // Daten neu laden

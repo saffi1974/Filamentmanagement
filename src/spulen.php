@@ -4,38 +4,104 @@ if (isset($_SESSION['success'])) {
     echo $_SESSION['success'];
     unset($_SESSION['success']);
 }
+
 // Anzahl Einträge pro Seite
 $limit = 13;
 
+// Nur Spulen mit vorhandenem Filament anzeigen
+$filter = "s.verbleibendes_filament > 0";
+
+// -----------------------------------------------------
+// Direkter Sprung zu einer bestimmten Spule
+// -----------------------------------------------------
+$spuleId = isset($_GET['spule_id']) ? (int)$_GET['spule_id'] : 0;
+$spuleLeer = false;
+
 // Aktuelle Seite aus URL, Standard = 1
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-if($page < 1) $page = 1;
+if ($page < 1) {
+    $page = 1;
+}
+
+// Wenn eine Spulen-ID übergeben wurde, passende Seite ermitteln
+if ($spuleId > 0) {
+
+    // Gesuchte Spule prüfen
+    $stmt = $conn->prepare("
+        SELECT id, verbleibendes_filament
+        FROM spulenlager
+        WHERE id = ?
+    ");
+    $stmt->bind_param("i", $spuleId);
+    $stmt->execute();
+
+    $spuleResult = $stmt->get_result();
+
+    if ($spuleResult->num_rows > 0) {
+
+        $spule = $spuleResult->fetch_assoc();
+
+        // Spule ist leer und wird deshalb im Lager nicht mehr angezeigt
+        if ((float)$spule['verbleibendes_filament'] <= 0) {
+
+            $spuleLeer = true;
+
+        } else {
+
+            // Position der Spule im sichtbaren Lager bestimmen
+            $stmt = $conn->prepare("
+                SELECT COUNT(*) AS position
+                FROM spulenlager
+                WHERE verbleibendes_filament > 0
+                  AND id <= ?
+            ");
+            $stmt->bind_param("i", $spuleId);
+            $stmt->execute();
+
+            $positionResult = $stmt->get_result();
+            $positionRow = $positionResult->fetch_assoc();
+
+            $position = (int)$positionRow['position'];
+
+            if ($position > 0) {
+                $page = (int)ceil($position / $limit);
+            }
+        }
+    }
+}
 
 // Startwert für LIMIT
 $start = ($page - 1) * $limit;
 
-$filter = "s.verbleibendes_filament > 0";
-
-
 // Anzahl Einträge
 $totalRes = $conn->query("
-    SELECT COUNT(*) as total 
+    SELECT COUNT(*) as total
     FROM spulenlager s
     WHERE $filter
 ");
+
 $totalRow = $totalRes->fetch_assoc();
-$totalEntries = $totalRow['total'];
-$totalPages = ceil($totalEntries / $limit);
+$totalEntries = (int)$totalRow['total'];
+$totalPages = (int)ceil($totalEntries / $limit);
 
 // Abfrage mit JOIN
-$sql = "SELECT s.*, f.name_des_filaments, f.preis AS filament_preis, f.artikelnummer_des_herstellers, m.name AS material, h.hr_name
-        FROM spulenlager s
-        LEFT JOIN filamente f ON s.filament_id = f.id
-        LEFT JOIN materialien m ON f.material = m.id
-        LEFT JOIN hersteller h ON f.hersteller_id = h.id
-		WHERE $filter
-        ORDER BY s.id ASC
-        LIMIT $start, $limit";
+$sql = "
+    SELECT
+        s.*,
+        f.name_des_filaments,
+        f.preis AS filament_preis,
+        f.artikelnummer_des_herstellers,
+        m.name AS material,
+        h.hr_name
+    FROM spulenlager s
+    LEFT JOIN filamente f ON s.filament_id = f.id
+    LEFT JOIN materialien m ON f.material = m.id
+    LEFT JOIN hersteller h ON f.hersteller_id = h.id
+    WHERE $filter
+    ORDER BY s.id ASC
+    LIMIT $start, $limit
+";
+
 $res = $conn->query($sql);
 ?>
 
@@ -44,7 +110,12 @@ $res = $conn->query($sql);
         <h2>Spulenlager</h2>
         <div class="right"><a href="index.php?site=spulen_anlegen" class="btn-primary">+ Spule anlegen</a> <a href="index.php?site=buchungen" class="btn-primary">+ Wareneingang buchen</a></div>
     </div>
-
+	<?php if ($spuleLeer): ?>
+		<div class="info-box">
+			<i class="fa-solid fa-circle-info"></i>
+			Die ausgewählte Spule #<?= $spuleId ?> ist bereits leer und wird deshalb im Spulenlager nicht mehr angezeigt.
+		</div>
+	<?php endif; ?>
     <table class="styled-table">
         <thead>
             <tr>
@@ -63,7 +134,7 @@ $res = $conn->query($sql);
         </thead>
 		<tbody>
 			<?php while($row = $res->fetch_assoc()): ?>
-			<tr>
+			<tr <?= $spuleId === (int)$row['id'] ? 'style="background-color:rgba(255, 193, 7, 0.18);"' : '' ?>>
 				<td class="left"><?= htmlspecialchars($row['id'] ?? '') ?></td>
 				<td class="left">
 					<?= htmlspecialchars($row['hr_name'] ?? '') ?> - <?= htmlspecialchars($row['name_des_filaments'] ?? '') ?>
