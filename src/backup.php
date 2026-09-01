@@ -26,24 +26,34 @@ if (!is_dir($backupDir)) {
     mkdir($backupDir, 0777, true);
 }
 
-// 1️⃣ Datenbank-Dump erstellen -- !!!! Achtung, unter Webmin liegt mysqldump wo anders !!!!!!
+// 1️⃣ Datenbank-Dump erstellen
+$mysqldumpExecutable = $mysqldumpPath ?? '/usr/bin/mysqldump';
 
-$mysqldump = "\"C:\\xampp\\mysql\\bin\\mysqldump.exe\" -h$host -u$user ";
+$mysqldump = '"' . $mysqldumpExecutable . '" -h$host -u$user ';
 if ($pass !== "") {
     $mysqldump .= "-p$pass ";
 }
 $mysqldump .= "$dbname > \"$sqlDumpFile\"";
 
-exec($mysqldump, $output, $result);
+// Fehlerausgaben (stderr) mit abfangen
+exec($mysqldump . " 2>&1", $output, $result);
 
-if ($result !== 0 || !file_exists($sqlDumpFile) || filesize($sqlDumpFile) === 0) {
-    echo "<div class='info-box'><i class='fa-solid fa-circle-exclamation'></i> Datenbank-Backup fehlgeschlagen!</div>";
+// Prüfen, ob Dump erfolgreich war
+if (!file_exists($sqlDumpFile) || filesize($sqlDumpFile) === 0) {
+    echo "<div class='info-box'><i class='fa-solid fa-circle-exclamation'></i>Datenbank-Backup fehlgeschlagen!</div>";
+    if (!empty($output)) {
+        echo "<pre style='color:red'>" . htmlspecialchars(implode("\n", $output)) . "</pre>";
+    }
+    exit; // Rest abbrechen
+} else {
+    echo "<div class='info-box'><i class='fa-solid fa-circle-check'></i>SQL-Dump erfolgreich erstellt: " . basename($sqlDumpFile) . "</div>";
 }
 
 // 2️⃣ ZIP mit Projekt + SQL-Dump erstellen
 $zip = new ZipArchive();
 if ($zip->open($backupFile, ZipArchive::CREATE) !== true) {
-    echo "<div class='info-box'><i class='fa-solid fa-circle-exclamation'></i> Konnte ZIP-Archiv nicht erstellen!</div>";
+    echo "<div class='info-box'><i class='fa-solid fa-circle-exclamation'></i>Konnte ZIP-Archiv nicht erstellen!</div>";
+    exit;
 }
 
 $dirIterator = new RecursiveDirectoryIterator($projectDir, RecursiveDirectoryIterator::SKIP_DOTS);
@@ -63,7 +73,7 @@ $zip->addFile($sqlDumpFile, basename($sqlDumpFile));
 $zip->close();
 
 unlink($sqlDumpFile);
-echo "<div class='info-box'><i class='fa-solid fa-circle-check'></i> Backup erfolgreich erstellt: " . basename($backupFile) . "</div>";
+echo "<div class='info-box'><i class='fa-solid fa-circle-check'></i>Backup erfolgreich erstellt: " . basename($backupFile) . "</div>";
 
 // 3️⃣ Nur die letzten 5 Backups behalten
 $files = glob("$backupDir/backup_*.zip");
@@ -72,6 +82,6 @@ if (count($files) > 5) {
     $oldFiles = array_slice($files, 5);
     foreach ($oldFiles as $old) {
         unlink($old);
-        echo "<div class='info-box'><i class='fa-solid fa-circle-check'></i> Gelöscht: " . basename($old) . "</div>";
+        echo "<div class='info-box'><i class='fa-solid fa-circle-check'></i> 🗑️ Gelöscht: " . basename($old) . "</div>";
     }
 }

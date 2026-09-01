@@ -46,3 +46,4 @@ node_modules/
 # System files
 .DS_Store
 Thumbs.db
+/src/config.local.php
