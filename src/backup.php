@@ -27,9 +27,7 @@ if (!is_dir($backupDir)) {
 }
 
 // 1️⃣ Datenbank-Dump erstellen
-$mysqldumpExecutable = $mysqldumpPath ?? '/usr/bin/mysqldump';
-
-$mysqldump = '"' . $mysqldumpExecutable . '" -h$host -u$user ';
+$mysqldump = '"/usr/bin/mysqldump" -h' . $host . ' -u' . $user . ' ';
 if ($pass !== "") {
     $mysqldump .= "-p$pass ";
 }

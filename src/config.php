@@ -1,16 +1,4 @@
 <?php
-// Standardumgebung: Produktivsystem
-$environment = 'production';
-
-// Standardpfad unter Linux
-$mysqldumpPath = '/usr/bin/mysqldump';
-
-// Lokale Einstellungen laden, falls vorhanden
-$localConfig = __DIR__ . '/config.local.php';
-
-if (file_exists($localConfig)) {
-    require $localConfig;
-}
 $dateien = array(); // ein Leeres Array erzeugen
 $dateien['start'] = "start.php";
 $dateien['anmelden'] = "anmelden.php";
